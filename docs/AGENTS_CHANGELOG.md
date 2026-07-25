@@ -103,7 +103,7 @@ Update AGENTS.md with additional rules.
 Claude Code
 
 ### Commit
-pending
+39540cb
 
 ### Task
 Configure project dependencies through the version catalog.
@@ -115,7 +115,6 @@ Configure project dependencies through the version catalog.
 - Wired the new dependencies into `app/build.gradle.kts` via `libs.*`/`libs.bundles.*`, including `ksp(libs.hilt.android.compiler)` and `ksp(libs.androidx.room.compiler)`
 - Added `kotlinx-coroutines-test` to `testImplementation`
 - Added `android.disallowKotlinSourceSets=false` to `gradle.properties` as a workaround for google/ksp#2729 (KSP vs. AGP 9 built-in Kotlin support)
-- Ignored `.idea/firebender` in `.gitignore` and removed the tracked Firebender chat history DB files
 
 ### Files
 - gradle/libs.versions.toml
