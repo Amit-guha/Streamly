@@ -513,6 +513,14 @@ Constructor injection whenever possible.
 
 ---
 
+# Dependencies (Gradle)
+Declare every dependency in `gradle/libs.versions.toml` — `[versions]`, `[libraries]`, `[plugins]`.
+Never hardcode a group/artifact/version string directly inside a `build.gradle.kts` file; reference it via `libs.*` from the version catalog.
+Reuse an existing version entry instead of duplicating the same version string under a new key.
+Group related libraries into a `[bundles]` entry when a feature always pulls them together (e.g. Compose, Media3).
+
+---
+
 
 
 
