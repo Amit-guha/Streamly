@@ -95,3 +95,30 @@ Update AGENTS.md with additional rules.
 
 ### Files
 - AGENTS.md
+
+--------------------
+
+## 2026-07-25
+### Agent
+Claude Code
+
+### Commit
+39540cb
+
+### Task
+Configure project dependencies through the version catalog.
+
+### Changes
+- Added `gradle/libs.versions.toml` entries (versions, libraries, plugins, bundles) for Hilt, Ktor, Room, Media3, Navigation 3, Kotlin Coroutines, kotlinx.serialization, AndroidX DataStore, Lifecycle (runtime-compose, viewmodel-compose), Compose Material3 WindowSizeClass, and Coil
+- Grouped `media3`, `ktor`, `room`, `navigation3`, and `coil` libraries into `[bundles]` entries
+- Applied `kotlin-serialization`, `ksp`, and `hilt-android` plugins in the root and `app` `build.gradle.kts`, all referenced via `libs.plugins.*`
+- Wired the new dependencies into `app/build.gradle.kts` via `libs.*`/`libs.bundles.*`, including `ksp(libs.hilt.android.compiler)` and `ksp(libs.androidx.room.compiler)`
+- Added `kotlinx-coroutines-test` to `testImplementation`
+- Added `android.disallowKotlinSourceSets=false` to `gradle.properties` as a workaround for google/ksp#2729 (KSP vs. AGP 9 built-in Kotlin support)
+
+### Files
+- gradle/libs.versions.toml
+- build.gradle.kts
+- app/build.gradle.kts
+- gradle.properties
+- .gitignore
