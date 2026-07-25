@@ -178,7 +178,7 @@ Wire up the shared `core/` infrastructure — base MVI ViewModel, DataStore-back
 Claude Code
 
 ### Commit
-pending
+5ecd2ed
 
 ### Task
 Add the sign-in flow: Authentication, SignInWithEmail, and Splash-based session routing.
