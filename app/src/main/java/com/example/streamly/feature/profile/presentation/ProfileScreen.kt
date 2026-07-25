@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.streamly.R
 import com.example.streamly.feature.profile.presentation.contract.ProfileEffect
@@ -32,7 +33,7 @@ internal fun ProfileScreenRoute(
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(viewModel.effect) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 ProfileEffect.NavigateBack -> onBack()
@@ -60,7 +61,14 @@ fun ProfileScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         ) {
-            Text(text = stringResource(R.string.profile_message))
+            Text(
+                text = uiState.name ?: stringResource(R.string.profile_name_fallback),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(
+                text = uiState.email ?: stringResource(R.string.profile_no_email),
+                style = MaterialTheme.typography.bodyMedium,
+            )
             Button(onClick = { onIntent(ProfileIntent.BackClicked) }) {
                 Text(text = stringResource(R.string.profile_back))
             }
@@ -72,7 +80,10 @@ fun ProfileScreen(
 @Composable
 private fun ProfileScreenMobilePreview() {
     StreamlyTheme {
-        ProfileScreen(uiState = ProfileUiState, onIntent = {})
+        ProfileScreen(
+            uiState = ProfileUiState(name = "Amit Guha", email = "amit@example.com"),
+            onIntent = {},
+        )
     }
 }
 
@@ -80,7 +91,10 @@ private fun ProfileScreenMobilePreview() {
 @Composable
 private fun ProfileScreenFoldablePreview() {
     StreamlyTheme {
-        ProfileScreen(uiState = ProfileUiState, onIntent = {})
+        ProfileScreen(
+            uiState = ProfileUiState(name = "Amit Guha", email = "amit@example.com"),
+            onIntent = {},
+        )
     }
 }
 
@@ -88,6 +102,9 @@ private fun ProfileScreenFoldablePreview() {
 @Composable
 private fun ProfileScreenTabletPreview() {
     StreamlyTheme {
-        ProfileScreen(uiState = ProfileUiState, onIntent = {})
+        ProfileScreen(
+            uiState = ProfileUiState(name = "Amit Guha", email = "amit@example.com"),
+            onIntent = {},
+        )
     }
 }

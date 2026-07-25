@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.streamly.core.common.constant.DataStoreConstants
 import com.example.streamly.core.domain.storage.datastore.AppPreferences
 import javax.inject.Inject
@@ -16,15 +17,32 @@ class AppPreferencesImpl @Inject constructor(
 ) : AppPreferences {
 
     private val isLoggedInKey = booleanPreferencesKey(DataStoreConstants.KEY_IS_LOGGED_IN)
+    private val userNameKey = stringPreferencesKey(DataStoreConstants.KEY_USER_NAME)
+    private val userEmailKey = stringPreferencesKey(DataStoreConstants.KEY_USER_EMAIL)
 
     override val isLoggedInFlow: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[isLoggedInKey] ?: false
+    }
+
+    override val userNameFlow: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[userNameKey]
+    }
+
+    override val userEmailFlow: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[userEmailKey]
     }
 
     override suspend fun isLoggedIn(): Boolean = isLoggedInFlow.first()
 
     override suspend fun setLoggedIn(loggedIn: Boolean) {
         dataStore.edit { preferences -> preferences[isLoggedInKey] = loggedIn }
+    }
+
+    override suspend fun saveUserProfile(name: String, email: String) {
+        dataStore.edit { preferences ->
+            preferences[userNameKey] = name
+            preferences[userEmailKey] = email
+        }
     }
 
     override suspend fun clearSession() {
