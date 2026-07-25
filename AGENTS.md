@@ -94,6 +94,11 @@ Never assume a single fixed phone width.
 Layouts must hold up on foldables and tablets, not just handsets.
 Derive layout decisions (single-pane vs multi-pane, column counts, padding) from the window size class, not hardcoded breakpoints.
 
+## Previews
+Every `<Feature>Screen` must have `@Preview` composables for 3 device sizes: mobile, foldable, and tablet.
+Use `@Preview(device = Devices.PHONE)`, `@Preview(device = Devices.FOLDABLE)`, and `@Preview(device = Devices.TABLET)` (or equivalent explicit `widthDp`/`heightDp`) to verify the layout at each `WindowSizeClass` breakpoint.
+Preview with realistic sample state, not empty/placeholder data.
+
 ---
 
 ## Base ViewModel Convention
@@ -144,6 +149,7 @@ The `core` module contains only shared infrastructure used across multiple featu
 ```
 core/
 ├── common/
+│   ├── base/
 │   ├── extension/
 │   ├── util/
 │   ├── constant/
@@ -185,6 +191,7 @@ core/
 Shared utilities used across the application.
 
 ### Contains
+- `base/` → Base classes shared by every feature (e.g. `MVIViewModel`).
 - `extension/` → Kotlin extension functions.
 - `util/` → Helper and utility classes.
 - `constant/` → Shared constants.
@@ -193,6 +200,18 @@ Shared utilities used across the application.
 ### Rules
 - Only reusable code belongs here.
 - Never place feature-specific code in `common`.
+
+### base/
+Contains `MVIViewModel<S, I, E>`, the abstract base every feature ViewModel extends.
+
+**Rules**
+- Pure Kotlin + `androidx.lifecycle.ViewModel` only — no feature or Compose imports.
+- Exposes `state: StateFlow<S>` (backed by `MutableStateFlow`) and `effect: SharedFlow<E>` (backed by `MutableSharedFlow`) — never expose the mutable versions.
+- Constructor takes the initial `UiState`.
+- Declares `abstract fun onIntent(intent: I)` as the single entry point for user actions.
+- Provides a `protected fun sendEffect(effect: E)` that launches on `viewModelScope` to emit one-time events.
+- Provides a `protected fun updateState(reducer: S.() -> S)` (or exposes `_state` as `protected`) so subclasses update state only via `_state.update { ... }`.
+- No business logic lives in the base class — it only wires state/intent/effect plumbing.
 
 ---
 
@@ -411,6 +430,50 @@ Move shared components to `core/designsystem/component`.
 
 ---
 
+## Domain Rules
+### model/
+Plain immutable Kotlin data classes representing the feature's business concepts.
+Never reference DTOs, Entities, or any data-layer type from a domain model.
+
+### repository/
+Interface only — no implementation.
+Methods return domain models via `suspend fun` or `Flow`, never DTOs/Entities.
+
+### usecase/
+See `UseCase Rules` above — one responsibility per UseCase, constructor-injected repository.
+
+### Rules
+- Domain never imports Android/framework types, Ktor, Room, or DTO/Entity classes.
+- Domain has no knowledge of where data comes from (network vs local vs cache).
+
+---
+
+## Data Rules
+### datasource/remote/
+Always required — every feature has at least one remote data source wrapping its Ktor API calls.
+
+### datasource/local/
+Only required when the feature needs offline persistence or caching (e.g. Downloads, offline-first feed).
+Skip this folder entirely for features with no persistence need (e.g. static onboarding copy) — do not create an empty/unused local data source for structural symmetry.
+
+### dto/
+Only required when the remote response shape differs from the domain model.
+If the API response already matches the domain model 1:1, skip the DTO and deserialize directly into the domain model — don't create a pass-through DTO just to have one.
+
+### mapper/
+Required whenever a DTO or Entity exists, to convert it to a domain model.
+Never create a mapper with nothing to map (no DTO/Entity in the feature).
+
+### repository/
+`<Feature>RepositoryImpl` implements the domain repository interface.
+The only layer allowed to combine/coordinate remote and local data sources.
+
+### Rules
+- Generate only the files a feature actually uses — an empty `dto/`, `local/`, or `mapper/` folder created "for completeness" is a smell, not a convention.
+- When in doubt, start with remote-only + domain model; add DTO/mapper/local later only when the API shape or offline requirement demands it.
+
+---
+
 
 
 
@@ -525,6 +588,23 @@ remember for business state
 Huge composables
 
 
+
+---
+
+# Strings
+Never hardcode user-facing text inside a Composable or ViewModel.
+All user-facing strings belong in `res/values/strings.xml` accessed via `stringResource()` in Compose.
+Never concatenate translatable strings at runtime — use string resource format args instead.
+Constants that are not user-facing (log tags, keys, route names) do not belong in `strings.xml`; keep those in `core/common/constant`.
+
+---
+
+# Colors
+Never hardcode color values (hex codes, `Color(0xFF...)`) inside a Composable.
+Define colors in `Color.kt` and wire them into `LightColorScheme` / `DarkColorScheme` inside `Theme.kt` (`StreamlyTheme`), following the existing `ui/theme/Theme.kt` setup.
+Access colors only through `MaterialTheme.colorScheme.*` in Composables, never by referencing raw `Color` constants directly.
+`LightColorScheme` and `DarkColorScheme` in `Theme.kt` must use the same color values — the app uses one fixed color scheme regardless of system light/dark setting.
+Disable dynamic color (`dynamicColor = false`) in `StreamlyTheme` so the fixed scheme is never overridden by system wallpaper colors.
 
 ---
 
