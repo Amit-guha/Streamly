@@ -122,3 +122,51 @@ Configure project dependencies through the version catalog.
 - app/build.gradle.kts
 - gradle.properties
 - .gitignore
+
+--------------------
+
+## 2026-07-25
+### Agent
+Claude Code
+
+### Commit
+3b4a3f8
+
+### Task
+Wire up the shared `core/` infrastructure — base MVI ViewModel, DataStore-backed preferences, Navigation 3, Ktor, and Room — plus a first `home`/`profile` feature pair to prove the Nav3 + Hilt ViewModel scoping end to end.
+
+### Changes
+- Added `core/common/base/MVIViewModel.kt` — the base class every feature ViewModel extends (`state`/`effect` exposed read-only, `sendEffect` launches on `viewModelScope`, `onIntent` abstract)
+- Added `core/domain/storage/datastore/AppPreferences.kt` (interface) and `core/data/storage/datastore/AppPreferencesImpl.kt` (DataStore-backed impl) for `isLoggedInFlow` / `isLoggedIn()` / `setLoggedIn()` / `clearSession()`; wired via `core/di/DataStoreModule.kt` and `core/di/StorageModule.kt`
+- Added `StreamlyApp.kt` (`@HiltAndroidApp`) since none existed yet, and wired it into the manifest; added `@AndroidEntryPoint` to `MainActivity`
+- Added Navigation 3 setup: `core/navigation/NavigationDestination.kt` (typealias for `NavKey`), `AppNavigator.kt` (back-stack holder), `AppNavGraph.kt` (wraps `NavDisplay` with `rememberViewModelStoreNavEntryDecorator` so `hiltViewModel()` scopes per back-stack entry); `StreamlyNavHost.kt` at the app root aggregates every feature's `*Entries` extension (kept out of `core` since `core` can't depend on features)
+- Added `feature/home` and `feature/profile` (full MVI: `UiState`/`Intent`/`Effect`/`HiltViewModel`, stateless `Screen` + 3 `@Preview`s, `<Feature>ScreenRoute` living in `<Feature>Screen.kt`, `NavKey` + `EntryProviderScope` extension living in `navigation/<Feature>Route.kt`) as the first working example of the documented feature-navigation pattern
+- Added Ktor setup: `core/network/json/JsonProvider.kt`, `core/network/api/ApiService.kt` (generic `get`/`post`/`put`/`delete` over `HttpClient`), `core/di/NetworkModule.kt` (OkHttp engine, `ContentNegotiation`, `Logging` gated on `BuildConfig.DEBUG`, `HttpTimeout`, `defaultRequest`, `expectSuccess = true`)
+- Added the `Result`/`Status` pattern for repository → ViewModel state: `core/common/enum/Status.kt`, `core/common/util/Result.kt`, `core/common/util/ResultFlow.kt` (`resultFlow { }` emits `LOADING` then `SUCCESS`/`ERROR`, catching exceptions so raw exceptions never reach a ViewModel)
+- Added Room setup: `core/local/entity/DownloadEntity.kt`, `core/local/dao/DownloadDao.kt`, `core/local/database/StreamlyDatabase.kt` (version 1, no migrations yet), `core/di/DatabaseModule.kt`; `core/common/enum/DownloadStatus.kt` and `core/common/constant/{NetworkConstants,DatabaseConstants}.kt`
+- Enabled `buildFeatures.buildConfig = true` in `app/build.gradle.kts` (needed for the `BuildConfig.DEBUG` check in `NetworkModule`)
+- Updated AGENTS.md: reworded the Presentation Rules navigation/`<Feature>Route.kt` section and its example to match the shape actually implemented, and updated the `core/network/` tree entry from `serializer/` to `json/`
+
+### Files
+- app/src/main/java/com/example/streamly/StreamlyApp.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/MainActivity.kt
+- app/src/main/java/com/example/streamly/core/common/base/MVIViewModel.kt
+- app/src/main/java/com/example/streamly/core/common/constant/{DataStoreConstants,NetworkConstants,DatabaseConstants}.kt
+- app/src/main/java/com/example/streamly/core/common/enum/{Status,DownloadStatus}.kt
+- app/src/main/java/com/example/streamly/core/common/util/{Result,ResultFlow}.kt
+- app/src/main/java/com/example/streamly/core/domain/storage/datastore/AppPreferences.kt
+- app/src/main/java/com/example/streamly/core/data/storage/datastore/AppPreferencesImpl.kt
+- app/src/main/java/com/example/streamly/core/di/{DataStoreModule,StorageModule,NetworkModule,DatabaseModule}.kt
+- app/src/main/java/com/example/streamly/core/navigation/{NavigationDestination,AppNavigator,AppNavGraph}.kt
+- app/src/main/java/com/example/streamly/core/network/json/JsonProvider.kt
+- app/src/main/java/com/example/streamly/core/network/api/ApiService.kt
+- app/src/main/java/com/example/streamly/core/local/entity/DownloadEntity.kt
+- app/src/main/java/com/example/streamly/core/local/dao/DownloadDao.kt
+- app/src/main/java/com/example/streamly/core/local/database/StreamlyDatabase.kt
+- app/src/main/java/com/example/streamly/feature/home/**
+- app/src/main/java/com/example/streamly/feature/profile/**
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/strings.xml
+- app/build.gradle.kts
+- AGENTS.md

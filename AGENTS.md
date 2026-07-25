@@ -166,7 +166,7 @@ core/
 ├── network/
 │   ├── api/
 │   ├── interceptor/
-│   ├── serializer/
+│   ├── json/
 │   └── model/
 │
 ├── local/
@@ -367,45 +367,22 @@ feature/
 
 
 ## Presentation Rules
-### screen/
-### <Feature>ScreenRoute.kt
-`<Feature>ScreenRoute.kt` is the entry point of a feature and connects the `ViewModel` to the UI.
+### <Feature>Screen.kt
+Holds both the `<Feature>ScreenRoute` composable and the stateless `<Feature>Screen` composable, in that one file.
 
-**Responsibilities**
+**`<Feature>ScreenRoute` responsibilities** (`internal`, not `private` — `navigation/<Feature>Route.kt` calls it)
 - Obtain the `ViewModel` using `hiltViewModel()`.
 - Collect `Effect` using `LaunchedEffect`.
-- Handle navigation and one-time UI events (Toast, Snackbar, Dialog, etc.).
+- Turn navigation-shaped effects into calls to the nav callback(s) passed in (e.g. `onNavigate: (NavigationDestination) -> Unit`, `onBack: () -> Unit`).
 - Pass `uiState` and `onIntent` to `<Feature>Screen`.
+
+**`<Feature>Screen`**: stateless. Takes `uiState` and `onIntent` as parameters — never obtains the `ViewModel` itself.
 
 **Rules**
 - Collect `Effect` only in `ScreenRoute`.
 - Handle navigation only in `ScreenRoute`.
 - Keep `<Feature>Screen` stateless.
 - Keep business logic out of `ScreenRoute`.
-
-Example
-```
-@Composable
-fun <Feature>ScreenRoute(
-    destination: (NavigationDestination) -> Unit,
-    onBackPress: () -> Unit,
-    viewModel: <Feature>ViewModel = hiltViewModel(),
-) {
-    LaunchedEffect(viewModel.effect) {
-        viewModel.effect.collectLatest { effect ->
-        
-        }
-    }
-}
-
-@Composable
-    <Feature>Screen(
-        uiState = viewModel.uiState,
-        onBackPress = onBackPress,
-        onIntent = viewModel::onIntent,
-    )
-```
-
 
 ### viewmodel/
 - Contains ViewModels only.
@@ -420,9 +397,51 @@ Contains the MVI contract.
 - `Effect`
 
 ### navigation/
-Contains feature navigation.
-- Route
-- Navigation wiring
+`<Feature>Route.kt` contains only the feature's `NavKey` and its `EntryProviderScope<NavigationDestination>` registration — it calls `<Feature>ScreenRoute` (defined in `<Feature>Screen.kt`) but does not define it.
+
+Example (`feature/home/presentation/HomeScreen.kt` + `feature/home/presentation/navigation/HomeRoute.kt`)
+```kotlin
+// HomeScreen.kt
+@Composable
+internal fun HomeScreenRoute(
+    onNavigate: (NavigationDestination) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                HomeEffect.NavigateToProfile -> onNavigate(ProfileNavKey)
+            }
+        }
+    }
+
+    HomeScreen(
+        uiState = uiState,
+        onIntent = viewModel::onIntent,
+    )
+}
+
+@Composable
+fun HomeScreen(uiState: HomeUiState, onIntent: (HomeIntent) -> Unit, modifier: Modifier = Modifier) {
+    // stateless UI
+}
+```
+```kotlin
+// navigation/HomeRoute.kt
+@Serializable
+data object HomeNavKey : NavigationDestination
+
+fun EntryProviderScope<NavigationDestination>.homeEntries(
+    onNavigate: (NavigationDestination) -> Unit,
+) {
+    entry<HomeNavKey> {
+        HomeScreenRoute(onNavigate = onNavigate)
+    }
+}
+```
+A central app-level host (not `core` — `core` must never depend on features) aggregates every feature's `*Entries` extension into one `entryProvider` and owns the single `AppNavigator`/back stack. See `StreamlyNavHost.kt` and `core/navigation/`.
 
 ### component/
 Contains reusable components used only within the feature.
