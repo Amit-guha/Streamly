@@ -130,7 +130,7 @@ Configure project dependencies through the version catalog.
 Claude Code
 
 ### Commit
-3b4a3f8
+501346d
 
 ### Task
 Wire up the shared `core/` infrastructure — base MVI ViewModel, DataStore-backed preferences, Navigation 3, Ktor, and Room — plus a first `home`/`profile` feature pair to prove the Nav3 + Hilt ViewModel scoping end to end.
@@ -170,3 +170,45 @@ Wire up the shared `core/` infrastructure — base MVI ViewModel, DataStore-back
 - app/src/main/res/values/strings.xml
 - app/build.gradle.kts
 - AGENTS.md
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-26
+### Agent
+Claude Code
+
+### Commit
+5ecd2ed
+
+### Task
+Add the sign-in flow: Authentication, SignInWithEmail, and Splash-based session routing.
+
+### Changes
+- Added `feature/auth/authentication` — the sign-in screen (Continue with Google, Sign in with email, Continue as guest);
+- Added `feature/auth/signinwithemail` — name + email capture screen; 
+- Added `feature/splash` — Splash is now a real screen (branded gradient + `FullScreenLoadingIndicator`), always the start destination;
+- Extended `AppPreferences`/`AppPreferencesImpl` with `userNameFlow`/`userEmailFlow`/`saveUserProfile()` so the email flow's captured name/email can be shared across features via the existing DataStore-backed store.
+- Updated `feature/profile` to show the real captured name/email (via a new `ObserveUserProfileUseCase`), falling back to "Guest" / "No email added" for the Google/guest paths.
+- Added `core/designsystem/component/FullScreenLoadingIndicator.kt` — a reusable, parameterized loading overlay (`indicatorColor`, `backgroundColor`, `isBlockingInteraction`, `zIndex`) that blocks touches to whatever's behind it.
+- Fixed the theme to match AGENTS.md's own rules (previously never actually applied): `dynamicColor = false`, identical Light/Dark color schemes, and added the Streamly blue brand palette used by Authentication/Splash.
+- Migrated `hiltViewModel()` off the deprecated `androidx.hilt.navigation.compose` to `androidx.hilt.lifecycle.viewmodel.compose` (new `hilt-lifecycle-viewmodel-compose` artifact, pinned to 1.3.0 to avoid a transitive `compileSdk 37` requirement).
+- Added `core/common/constant/AppConstants.kt` (`SPLASH_MIN_DISPLAY_DURATION`) and a matching `delay()` in `SplashViewModel` so the splash branding doesn't just flash by instantly.
+- Added `README.md`.
+
+### Files
+- app/src/main/java/com/example/streamly/feature/auth/authentication/**
+- app/src/main/java/com/example/streamly/feature/auth/signinwithemail/**
+- app/src/main/java/com/example/streamly/feature/splash/**
+- app/src/main/java/com/example/streamly/feature/profile/**
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/core/domain/storage/datastore/AppPreferences.kt
+- app/src/main/java/com/example/streamly/core/data/storage/datastore/AppPreferencesImpl.kt
+- app/src/main/java/com/example/streamly/core/common/constant/{AppConstants,DataStoreConstants}.kt
+- app/src/main/java/com/example/streamly/core/designsystem/component/FullScreenLoadingIndicator.kt
+- app/src/main/java/com/example/streamly/core/navigation/AppNavigator.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/ui/theme/{Color,Theme}.kt
+- app/src/main/res/values/strings.xml
+- app/build.gradle.kts
+- gradle/libs.versions.toml
+- README.md

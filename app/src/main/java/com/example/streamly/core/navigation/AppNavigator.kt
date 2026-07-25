@@ -17,6 +17,13 @@ class AppNavigator(
     fun navigateBack() {
         backStack.removeLastOrNull()
     }
+
+    /** Clears the whole back stack and starts fresh at [destination]. Used by Splash so it never
+     * remains in the stack once the real start destination is resolved. */
+    fun replaceBackStackWith(destination: NavigationDestination) {
+        backStack.clear()
+        backStack.add(destination)
+    }
 }
 
 @Composable

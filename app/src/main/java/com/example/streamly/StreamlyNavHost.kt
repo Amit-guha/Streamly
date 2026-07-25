@@ -5,23 +5,39 @@ import androidx.navigation3.runtime.entryProvider
 import com.example.streamly.core.navigation.AppNavGraph
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.core.navigation.rememberAppNavigator
+import com.example.streamly.feature.auth.authentication.presentation.navigation.authenticationEntries
+import com.example.streamly.feature.auth.signinwithemail.presentation.navigation.signInWithEmailEntries
 import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.home.presentation.navigation.homeEntries
 import com.example.streamly.feature.profile.presentation.navigation.profileEntries
+import com.example.streamly.feature.splash.presentation.navigation.SplashNavKey
+import com.example.streamly.feature.splash.presentation.navigation.splashEntries
 
 /**
  * Central navigation host. Every feature owns its own `presentation/navigation` package
  * (a NavKey + an [androidx.navigation3.runtime.EntryProviderScope] extension); this is the
  * one place that aggregates them into a single back stack.
+ *
+ * Always starts at [SplashNavKey] — Splash is the one that decides (via session state) whether
+ * to land on Authentication or Home, and replaces itself in the back stack once it does, so it
+ * never lingers as a back destination.
  */
 @Composable
 fun StreamlyNavHost() {
-    val navigator = rememberAppNavigator(startDestination = HomeNavKey)
+    val navigator = rememberAppNavigator(startDestination = SplashNavKey)
 
     AppNavGraph(
         backStack = navigator.backStack,
         onBack = navigator::navigateBack,
         entryProvider = entryProvider<NavigationDestination> {
+            splashEntries(onNavigate = navigator::replaceBackStackWith)
+            authenticationEntries(
+                onNavigate = navigator::navigateTo,
+                onAuthenticated = { navigator.replaceBackStackWith(HomeNavKey) },
+            )
+            signInWithEmailEntries(
+                onAuthenticated = { navigator.replaceBackStackWith(HomeNavKey) },
+            )
             homeEntries(onNavigate = navigator::navigateTo)
             profileEntries(onBack = navigator::navigateBack)
         },
