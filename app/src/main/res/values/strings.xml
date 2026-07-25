@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Streamly</string>
+    <string name="home_greeting">Hello, %1$s!</string>
+    <string name="home_go_to_profile">Go to Profile</string>
+    <string name="profile_message">You made it here from Home!</string>
+    <string name="profile_back">Back</string>
 </resources>
