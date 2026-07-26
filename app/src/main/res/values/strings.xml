@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">Streamly</string>
-    <string name="home_greeting">Hello, %1$s!</string>
-    <string name="home_go_to_profile">Go to Profile</string>
     <string name="profile_back">Back</string>
     <string name="profile_name_fallback">Guest</string>
     <string name="profile_no_email">No email added</string>
@@ -16,4 +14,30 @@
     <string name="email_sign_in_name_label">Name</string>
     <string name="email_sign_in_email_label">Email</string>
     <string name="email_sign_in_continue">Continue</string>
+
+    <string name="home_notification_icon_description">Notifications</string>
+    <string name="home_search_icon_description">Search</string>
+    <string name="home_category_all">All</string>
+    <string name="home_category_music">Music</string>
+    <string name="home_category_live">Live</string>
+    <string name="home_video_subtitle">%1$s • %2$s • %3$s</string>
+    <string name="home_error_message">Something went wrong</string>
+    <string name="home_retry">Retry</string>
+    <string name="home_channel_avatar_description">Channel avatar</string>
+    <string name="home_thumbnail_description">Video thumbnail</string>
+
+    <string name="player_back">Back</string>
+    <string name="player_mute">Mute</string>
+    <string name="player_unmute">Unmute</string>
+    <string name="player_subscribe">Subscribe</string>
+    <string name="player_subscribed">Subscribed</string>
+    <string name="player_like">Like</string>
+    <string name="player_liked">Liked</string>
+    <string name="player_share">Share</string>
+    <string name="player_channel_avatar_description">Channel avatar</string>
+    <string name="player_video_subtitle">%1$s • %2$s</string>
+    <string name="player_up_next_title">Up next</string>
+    <string name="player_up_next_error">Couldn\'t load up next videos</string>
+    <string name="player_retry">Retry</string>
+    <string name="player_up_next_thumbnail_description">Video thumbnail</string>
 </resources>

@@ -9,6 +9,7 @@ import com.example.streamly.feature.auth.authentication.presentation.navigation.
 import com.example.streamly.feature.auth.signinwithemail.presentation.navigation.signInWithEmailEntries
 import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.home.presentation.navigation.homeEntries
+import com.example.streamly.feature.player.presentation.navigation.playerEntries
 import com.example.streamly.feature.profile.presentation.navigation.profileEntries
 import com.example.streamly.feature.splash.presentation.navigation.SplashNavKey
 import com.example.streamly.feature.splash.presentation.navigation.splashEntries
@@ -39,6 +40,7 @@ fun StreamlyNavHost() {
                 onAuthenticated = { navigator.replaceBackStackWith(HomeNavKey) },
             )
             homeEntries(onNavigate = navigator::navigateTo)
+            playerEntries(onBack = navigator::navigateBack)
             profileEntries(onBack = navigator::navigateBack)
         },
     )

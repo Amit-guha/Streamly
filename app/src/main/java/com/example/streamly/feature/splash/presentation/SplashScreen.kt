@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.streamly.core.designsystem.component.FullScreenLoadingIndicator
+import com.example.streamly.core.designsystem.component.CircularCommonLoader
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.feature.auth.authentication.presentation.navigation.AuthenticationNavKey
 import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
@@ -56,7 +56,7 @@ fun SplashScreen(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        FullScreenLoadingIndicator(
+        CircularCommonLoader(
             indicatorColor = MaterialTheme.colorScheme.onPrimary,
         )
     }

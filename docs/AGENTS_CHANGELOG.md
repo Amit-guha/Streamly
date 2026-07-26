@@ -212,3 +212,29 @@ Add the sign-in flow: Authentication, SignInWithEmail, and Splash-based session 
 - app/build.gradle.kts
 - gradle/libs.versions.toml
 - README.md
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-27
+### Agent
+Claude Code
+
+### Commit
+pending
+
+### Task
+Refine the Home feature: extract reusable UI components, adopt shared design-system components, add an adaptive grid layout, and fix a few rule violations.
+
+### Changes
+- Extracted `HomeScreen`'s private sub-composables into `feature/home/presentation/component/`: `ErrorContent`, `CategoryChipsRow`, `VideoCard`, `HomeFeedContent`
+- Home's feed now adapts to `WindowSizeClass`: single-column list on compact width (phone), `LazyVerticalGrid` with `GridCells.Adaptive` on medium/expanded width (foldable/tablet) — column count isn't hardcoded
+- Moved `VIDEOS_ASSET_FILE_NAME` out of a local `private const val` in `HomeNetworkModule` into `core/common/constant/AppConstants`
+- Integrate Whole Home Feed Feature 
+
+### Files
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/component/**
+- app/src/main/java/com/example/streamly/feature/home/di/HomeNetworkModule.kt
+- app/src/main/java/com/example/streamly/core/designsystem/component/CircularCommonLoader.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/java/com/example/streamly/feature/splash/presentation/SplashScreen.kt

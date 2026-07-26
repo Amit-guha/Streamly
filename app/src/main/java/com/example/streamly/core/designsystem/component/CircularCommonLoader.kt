@@ -16,14 +16,14 @@ import androidx.compose.ui.zIndex
 
 /**
  * Full-screen loading spinner meant to sit on top of a screen's own content as an overlay
- * (e.g. `Box { ScreenContent(); if (uiState.isLoading) FullScreenLoadingIndicator() }`).
+ * (e.g. `Box { ScreenContent(); if (uiState.isLoading) CircularCommonLoader() }`).
  *
  * Draws above whatever else is in the same [Box] via [zIndex], and — when
  * [isBlockingInteraction] is true (the default) — swallows taps so they never reach the content
  * underneath while it's showing.
  */
 @Composable
-fun FullScreenLoadingIndicator(
+fun CircularCommonLoader(
     modifier: Modifier = Modifier,
     indicatorColor: Color = MaterialTheme.colorScheme.primary,
     backgroundColor: Color = Color.Transparent,
