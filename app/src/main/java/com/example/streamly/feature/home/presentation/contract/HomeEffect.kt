@@ -1,5 +1,7 @@
 package com.example.streamly.feature.home.presentation.contract
 
+import com.example.streamly.feature.home.presentation.model.VideoUiModel
+
 sealed interface HomeEffect {
-    data object NavigateToProfile : HomeEffect
+    data class NavigateToPlayer(val video: VideoUiModel) : HomeEffect
 }

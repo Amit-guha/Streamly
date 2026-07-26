@@ -212,3 +212,65 @@ Add the sign-in flow: Authentication, SignInWithEmail, and Splash-based session 
 - app/build.gradle.kts
 - gradle/libs.versions.toml
 - README.md
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-27
+### Agent
+Claude Code
+
+### Commit
+83b4f43
+
+### Task
+Refine the Home feature: extract reusable UI components, adopt shared design-system components, add an adaptive grid layout, and fix a few rule violations.
+
+### Changes
+- Extracted `HomeScreen`'s private sub-composables into `feature/home/presentation/component/`: `ErrorContent`, `CategoryChipsRow`, `VideoCard`, `HomeFeedContent`
+- Home's feed now adapts to `WindowSizeClass`: single-column list on compact width (phone), `LazyVerticalGrid` with `GridCells.Adaptive` on medium/expanded width (foldable/tablet) — column count isn't hardcoded
+- Moved `VIDEOS_ASSET_FILE_NAME` out of a local `private const val` in `HomeNetworkModule` into `core/common/constant/AppConstants`
+- Integrate Whole Home Feed Feature 
+
+### Files
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/component/**
+- app/src/main/java/com/example/streamly/feature/home/di/HomeNetworkModule.kt
+- app/src/main/java/com/example/streamly/core/designsystem/component/CircularCommonLoader.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/java/com/example/streamly/feature/splash/presentation/SplashScreen.kt
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-27
+### Agent
+Claude Code
+
+### Commit
+83b4f43
+
+### Task
+Build the Player (normal video) feature end to end, and introduce presentation-layer UI models so Presentation stops depending on domain models directly.
+
+### Changes
+- Added `feature/player`: `PlayerRepository`/`PlayerRepositoryImpl` (reuses `HomeRepository`'s catalog for video details + up-next instead of duplicating the fetch), `GetVideoDetailsUseCase`, full MVI contract (`PlayerUiState`/`PlayerIntent`/`PlayerEffect`), `PlayerViewModel`, and `PlayerScreen` split into `presentation/component/` (`PlayerSurface`, `VideoMetadataSection`, `ActionButtonsRow`, `UpNextItems`, `UpNextVideoItem`)
+- Added `PlayerController`/`Media3PlayerController` (`feature/player/di/`) — wraps Media3's `Player` behind a small, fakeable contract (`play`/`resume`/`pause`/`setMuted`/`release`/`isPlaying`) instead of the ViewModel driving Media3 APIs directly
+- Single shared `ExoPlayer` instance: created once per `PlayerViewModel`, reused across up-next switches (handled entirely via intent, no new nav entry/ViewModel per video) and configuration changes, released only in `onCleared()`
+- Lifecycle-correct pause/resume: `wasPlayingBeforeSystemPause` bookkeeping so a rotation's pause/resume cycle only resumes playback if it was actually playing before (fixes an earlier bug where rotation force-resumed a paused video)
+- Added `VideoUiModel` + `toUiModel()` mapper in both `feature/home/presentation/model/` and `feature/player/presentation/model/`; `HomeUiState`/`HomeIntent`/`HomeEffect`/`PlayerUiState`/`PlayerIntent` and their composables now use it instead of the domain `Video` model directly
+- Fixed player audio continuing briefly after pressing back: `AppNavGraph`'s exit transition keeps both screens composed during the animation, so `PlayerScreenRoute` now pauses immediately via `BackHandler` (covers both the in-app back icon and the system back button/gesture) instead of waiting for `onCleared()` at the end of the transition
+- Fixed the resulting screen-overlap looking messy during that transition: `PlayerScreenRoute` swaps to a blank `Surface` the instant back is requested, so the transition has nothing dense to double-expose against; replaced the plain crossfade in `AppNavGraph` with a Material "shared axis" slide+fade
+- `videos.json` expanded from 2 to 10 entries (reusing the two HLS streams with distinct metadata) so Home's grid and Player's up-next list have real variety
+
+### Files
+- app/src/main/java/com/example/streamly/feature/player/**
+- app/src/main/java/com/example/streamly/feature/home/presentation/model/VideoUiModel.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/{HomeViewModel,HomeScreen}.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeUiState,HomeIntent,HomeEffect}.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/component/{VideoCard,HomeFeedContent}.kt
+- app/src/main/java/com/example/streamly/core/navigation/AppNavGraph.kt
+- app/src/main/java/com/example/streamly/core/designsystem/LocalWindowSizeClass.kt
+- app/src/main/java/com/example/streamly/MainActivity.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/assets/videos.json
+- app/build.gradle.kts
+- gradle/libs.versions.toml
