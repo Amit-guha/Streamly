@@ -11,6 +11,7 @@ import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.home.presentation.navigation.homeEntries
 import com.example.streamly.feature.player.presentation.navigation.playerEntries
 import com.example.streamly.feature.profile.presentation.navigation.profileEntries
+import com.example.streamly.feature.shorts.presentation.navigation.shortsEntries
 import com.example.streamly.feature.splash.presentation.navigation.SplashNavKey
 import com.example.streamly.feature.splash.presentation.navigation.splashEntries
 
@@ -42,6 +43,7 @@ fun StreamlyNavHost() {
             homeEntries(onNavigate = navigator::navigateTo)
             playerEntries(onBack = navigator::navigateBack)
             profileEntries(onBack = navigator::navigateBack)
+            shortsEntries(onBack = navigator::navigateBack)
         },
     )
 }

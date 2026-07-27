@@ -274,3 +274,39 @@ Build the Player (normal video) feature end to end, and introduce presentation-l
 - app/src/main/assets/videos.json
 - app/build.gradle.kts
 - gradle/libs.versions.toml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-27
+### Agent
+Claude Code
+
+### Commit
+9e2b883
+
+### Task
+Build the Shorts feature: full-screen vertical pager with pooled Media3 playback.
+
+### Prompt
+Build a Facebook/Instagram-style full-screen vertical Shorts pager — data from `assets/shorts.json`, autoplay on the visible item, center play/pause, 5s seek forward/backward, a draggable progress bar, mute, and non-functional like/comment/share stubs — using a pooled player strategy so no more than 1-2 `ExoPlayer` instances are ever alive at once.
+
+### Changes
+- Added `feature/shorts` end to end: domain `Short` model, `ShortsRepository`/`ShortsRepositoryImpl`, `GetShortsUseCase`, and a mock Ktor client reading `assets/shorts.json` (same pattern as `feature/home`)
+- Full MVI: `ShortsUiState`/`ShortsIntent`/`ShortsEffect`, `ShortsViewModel`, `ShortsScreen` (`ShortsScreenRoute` + stateless `ShortsScreen`) built on `VerticalPager`
+- Added `ShortsPlayerPool`/`Media3ShortsPlayerPool` (`feature/shorts/di/`) — an LRU-capped pool (max 2 live `ExoPlayer`s) that always holds `{visible, next}`, evicting the least-recently-used player on every page change; self-heals to the same window in either swipe direction, documented in code
+- Built the player UI on `androidx.media3.ui.compose` (Compose-native Media3 APIs): `PlayerSurface` + `rememberPresentationState` for the video, `PlayPauseButton`/`SeekBackButton`/`SeekForwardButton` (wired to 5s increments) for center transport controls, `ProgressIndicator` state driving a draggable `Slider` seek bar; mute stays ViewModel-owned since it must persist across pooled player swaps, everything else is native player-driven with no ViewModel round trip
+- Added components: `ShortPagerItem`, `ShortPlayerControls` (nullable `Player` with a static fallback row so it can be previewed), `ShortProgressBar`, `ShortActionRail` (like/comment/share stubs + functional mute), `ShortCaptionOverlay`, `ShortsErrorContent`
+- Fixed a `StateFlow` conflation bug: the pool's page-0 player was created correctly but the UI never recomposed to pick it up, since re-dispatching `OnPageChanged(0)` produced a structurally-equal state; fixed with an explicit `playerGeneration` counter in `ShortsUiState`
+- Added `AppConstants.SHORTS_ASSET_FILE_NAME` and `AppConstants.SHORTS_MAX_PAGER_WIDTH_DP` (caps the pager's width on foldables/tablets instead of stretching full-bleed)
+- Added `assets/shorts.json` (8 entries); swapped the initial placeholder `videoUrl`s (a 30-minute Apple test-pattern loop and multi-minute movie streams) for a verified-live, genuinely short (~60s) HLS stream (`shaka-demo-assets/angel-one-hls`) after confirming reachability and duration directly
+
+
+### Files
+- app/src/main/java/com/example/streamly/feature/shorts/**
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeViewModel.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeIntent,HomeEffect}.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/assets/shorts.json
+- app/src/main/res/values/strings.xml
