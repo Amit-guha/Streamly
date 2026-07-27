@@ -3,7 +3,10 @@ package com.example.streamly.feature.player.di
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -18,7 +21,14 @@ interface PlayerController {
     val player: Player
     val isPlaying: Boolean
 
-    fun play(videoUrl: String)
+    /**
+     * [preferDownloadedRendition] must be true for a fully-downloaded video: the download
+     * pipeline only ever caches the lowest-bitrate HLS rendition (see DownloadsRepositoryImpl),
+     * so regular adaptive track selection would pick a *different*, uncached rendition and stall
+     * with no network. Forcing the same lowest-bitrate selection here is what makes offline
+     * playback actually hit the cache instead of the network.
+     */
+    fun play(videoUrl: String, preferDownloadedRendition: Boolean = false)
     fun resume()
     fun pause()
     fun setMuted(muted: Boolean)
@@ -27,14 +37,28 @@ interface PlayerController {
 
 class Media3PlayerController @Inject constructor(
     @ApplicationContext context: Context,
+    cacheDataSourceFactory: CacheDataSource.Factory,
 ) : PlayerController {
 
-    override val player: Player = ExoPlayer.Builder(context).build()
+    private val trackSelector = DefaultTrackSelector(context)
+
+    // Reading through the same [CacheDataSource.Factory] the download pipeline writes to means a
+    // fully-downloaded video plays back from local storage automatically, network otherwise —
+    // no special-casing needed for "play a downloaded video" vs. "stream a video".
+    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
+        .setTrackSelector(trackSelector)
+        .setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory))
+        .build()
+
+    override val player: Player = exoPlayer
 
     override val isPlaying: Boolean
         get() = player.playWhenReady
 
-    override fun play(videoUrl: String) {
+    override fun play(videoUrl: String, preferDownloadedRendition: Boolean) {
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters().setForceLowestBitrate(preferDownloadedRendition),
+        )
         player.setMediaItem(MediaItem.fromUri(videoUrl))
         player.prepare()
         player.playWhenReady = true

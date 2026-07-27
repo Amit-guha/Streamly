@@ -1,12 +1,8 @@
-package com.example.streamly.core.local.entity
+package com.example.streamly.feature.downloads.data.datasource.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-/**
- * [status] stores a [com.example.streamly.core.common.enum.DownloadStatus] name. Kept as a plain
- * String on the entity (no TypeConverter) — feature data-layer mappers translate it to the enum.
- */
 @Entity(tableName = "downloads")
 data class DownloadEntity(
     @PrimaryKey val videoId: String,

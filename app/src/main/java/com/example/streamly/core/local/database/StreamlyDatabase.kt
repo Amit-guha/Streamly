@@ -2,8 +2,8 @@ package com.example.streamly.core.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.example.streamly.core.local.dao.DownloadDao
-import com.example.streamly.core.local.entity.DownloadEntity
+import com.example.streamly.feature.downloads.data.datasource.local.DownloadDao
+import com.example.streamly.feature.downloads.data.datasource.local.DownloadEntity
 
 @Database(
     entities = [DownloadEntity::class],

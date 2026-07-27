@@ -7,6 +7,9 @@ sealed interface PlayerIntent {
     data object OnSubscribeClicked : PlayerIntent
     data object OnLikeClicked : PlayerIntent
     data object OnShareClicked : PlayerIntent
+    data object OnDownloadClicked : PlayerIntent
+    data object OnRemoveDownloadClicked : PlayerIntent
+    data object OnDownloadSheetDismissed : PlayerIntent
     data object OnMuteToggled : PlayerIntent
     data class OnUpNextVideoClicked(val video: VideoUiModel) : PlayerIntent
     data object OnRetryClicked : PlayerIntent

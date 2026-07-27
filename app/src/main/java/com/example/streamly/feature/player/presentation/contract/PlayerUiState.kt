@@ -1,5 +1,6 @@
 package com.example.streamly.feature.player.presentation.contract
 
+import com.example.streamly.core.common.enum.DownloadStatus
 import com.example.streamly.feature.player.presentation.model.VideoUiModel
 
 data class PlayerUiState(
@@ -19,4 +20,6 @@ data class PlayerUiState(
     val upNext: List<VideoUiModel> = emptyList(),
     val isLoadingUpNext: Boolean = false,
     val upNextErrorMessage: String? = null,
+    val downloadStatus: DownloadStatus? = null,
+    val showDownloadOptionsSheet: Boolean = false,
 )

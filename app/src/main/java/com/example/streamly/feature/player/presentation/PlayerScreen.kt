@@ -2,15 +2,23 @@ package com.example.streamly.feature.player.presentation
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
@@ -23,8 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -35,8 +45,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
+import com.example.streamly.R
 import com.example.streamly.core.designsystem.LocalWindowSizeClass
+import com.example.streamly.core.navigation.NavigationDestination
+import com.example.streamly.feature.downloads.presentation.navigation.DownloadsNavKey
 import com.example.streamly.feature.player.presentation.component.ActionButtonsRow
+import com.example.streamly.feature.player.presentation.component.DownloadOptionsBottomSheet
 import com.example.streamly.feature.player.presentation.component.PlayerSurface
 import com.example.streamly.feature.player.presentation.component.VideoMetadataSection
 import com.example.streamly.feature.player.presentation.component.upNextItems
@@ -54,6 +68,7 @@ internal fun PlayerScreenRoute(
     title: String,
     videoUrl: String,
     onBack: () -> Unit,
+    onNavigate: (NavigationDestination) -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -61,6 +76,9 @@ internal fun PlayerScreenRoute(
     val lifecycleOwner = LocalLifecycleOwner.current
     val windowSizeClass = LocalWindowSizeClass.current
     var isExiting by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val downloadStartedMessage = stringResource(R.string.player_download_started_message)
+    val viewActionLabel = stringResource(R.string.player_download_started_view_action)
 
     BackHandler(enabled = !isExiting) {
         isExiting = true
@@ -83,6 +101,16 @@ internal fun PlayerScreenRoute(
                     }
                     context.startActivity(Intent.createChooser(shareIntent, null))
                 }
+                PlayerEffect.ShowDownloadStartedSnackbar -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = downloadStartedMessage,
+                        actionLabel = viewActionLabel,
+                        duration = SnackbarDuration.Short,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        onNavigate(DownloadsNavKey)
+                    }
+                }
             }
         }
     }
@@ -102,17 +130,25 @@ internal fun PlayerScreenRoute(
     if (isExiting) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
     } else {
-        PlayerScreen(
-            uiState = uiState,
-            player = viewModel.player,
-            windowSizeClass = windowSizeClass,
-            onIntent = viewModel::onIntent,
-            onBack = {
-                isExiting = true
-                viewModel.onIntent(PlayerIntent.OnBackRequested)
-                onBack()
-            },
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            PlayerScreen(
+                uiState = uiState,
+                player = viewModel.player,
+                windowSizeClass = windowSizeClass,
+                onIntent = viewModel::onIntent,
+                onBack = {
+                    isExiting = true
+                    viewModel.onIntent(PlayerIntent.OnBackRequested)
+                    onBack()
+                },
+            )
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .windowInsetsPadding(WindowInsets.systemBars),
+            )
+        }
     }
 }
 
@@ -152,7 +188,11 @@ fun PlayerScreen(
                         isSubscribed = uiState.isSubscribed,
                         onIntent = onIntent,
                     )
-                    ActionButtonsRow(isLiked = uiState.isLiked, onIntent = onIntent)
+                    ActionButtonsRow(
+                        isLiked = uiState.isLiked,
+                        downloadStatus = uiState.downloadStatus,
+                        onIntent = onIntent,
+                    )
                 }
                 LazyColumn(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
                     upNextItems(
@@ -182,7 +222,11 @@ fun PlayerScreen(
                     )
                 }
                 item {
-                    ActionButtonsRow(isLiked = uiState.isLiked, onIntent = onIntent)
+                    ActionButtonsRow(
+                        isLiked = uiState.isLiked,
+                        downloadStatus = uiState.downloadStatus,
+                        onIntent = onIntent,
+                    )
                 }
                 upNextItems(
                     upNext = uiState.upNext,
@@ -192,6 +236,13 @@ fun PlayerScreen(
                 )
             }
         }
+    }
+
+    if (uiState.showDownloadOptionsSheet) {
+        DownloadOptionsBottomSheet(
+            onRemoveClicked = { onIntent(PlayerIntent.OnRemoveDownloadClicked) },
+            onDismiss = { onIntent(PlayerIntent.OnDownloadSheetDismissed) },
+        )
     }
 }
 

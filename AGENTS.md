@@ -180,6 +180,8 @@ core/
 │
 ├── navigation/
 │
+├── service/
+│
 └── di/
 ```
 
@@ -303,6 +305,19 @@ Shared dependency injection.
 ```
 feature/<feature>/di/
 ```
+
+---
+
+## service/
+Shared Android platform `Service` entry points (e.g. Media3's `DownloadService`).
+
+### Contains
+- `Service`/`AndroidEntryPoint` classes that are genuinely shared infrastructure, not feature business logic.
+
+### Rules
+- Only the `Service` class itself belongs here — its dependencies (e.g. a shared `DownloadManager`) are provisioned in `core/di/`, not inlined into the service.
+- No business logic inside the service — delegate to injected collaborators instead of implementing behavior directly here.
+- A service is only shared infrastructure if multiple features could plausibly depend on it; a feature-specific service does not belong in `core`.
 
 ---
 

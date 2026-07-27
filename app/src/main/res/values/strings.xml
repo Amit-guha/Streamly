@@ -18,6 +18,7 @@
     <string name="home_notification_icon_description">Notifications</string>
     <string name="home_search_icon_description">Search</string>
     <string name="home_shorts_icon_description">Shorts</string>
+    <string name="home_downloads_icon_description">Downloads</string>
     <string name="home_category_all">All</string>
     <string name="home_category_music">Music</string>
     <string name="home_category_live">Live</string>
@@ -41,6 +42,13 @@
     <string name="player_up_next_error">Couldn\'t load up next videos</string>
     <string name="player_retry">Retry</string>
     <string name="player_up_next_thumbnail_description">Video thumbnail</string>
+    <string name="player_download">Download</string>
+    <string name="player_downloading">Downloading</string>
+    <string name="player_downloaded">Downloaded</string>
+    <string name="player_download_retry">Retry</string>
+    <string name="player_download_options_delete">Delete from downloads</string>
+    <string name="player_download_started_message">Downloading…</string>
+    <string name="player_download_started_view_action">View</string>
 
     <string name="shorts_title">Shorts</string>
     <string name="shorts_back">Back</string>
@@ -57,4 +65,16 @@
     <string name="shorts_thumbnail_description">Short video thumbnail</string>
     <string name="shorts_error_message">Something went wrong</string>
     <string name="shorts_retry">Retry</string>
+
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_back">Back</string>
+    <string name="downloads_storage_used">%1$s used of %2$s</string>
+    <string name="downloads_status_ready">Ready to play</string>
+    <string name="downloads_status_downloading">Downloading</string>
+    <string name="downloads_status_pending">Pending</string>
+    <string name="downloads_status_failed">Failed</string>
+    <string name="downloads_remove_description">Remove download</string>
+    <string name="downloads_empty_message">No downloads yet</string>
+    <string name="downloads_thumbnail_description">Video thumbnail</string>
+    <string name="downloads_notification_channel_name">Downloads</string>
 </resources>
