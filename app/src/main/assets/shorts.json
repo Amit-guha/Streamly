@@ -1,0 +1,66 @@
+[
+  {
+    "id": "s1",
+    "handle": "@compose_hub",
+    "caption": "Quick tip #12",
+    "description": "Autoplay on visible item only",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/streamly-short1/720/1280"
+  },
+  {
+    "id": "s2",
+    "handle": "@android_academy",
+    "caption": "Media3 pooled players",
+    "description": "Only the visible short decodes at a time",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short2/720/1280"
+  },
+  {
+    "id": "s3",
+    "handle": "@kotlin_weekly",
+    "caption": "Structured concurrency in 30s",
+    "description": "Coroutines, Flow, and cancellation",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short3/720/1280"
+  },
+  {
+    "id": "s4",
+    "handle": "@nav3_daily",
+    "caption": "Type-safe back stacks",
+    "description": "Navigation 3 in one clip",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short4/720/1280"
+  },
+  {
+    "id": "s5",
+    "handle": "@devbytes",
+    "caption": "Hilt scoping, fast",
+    "description": "Modules and components explained",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short5/720/1280"
+  },
+  {
+    "id": "s6",
+    "handle": "@data_layer_daily",
+    "caption": "Offline-first in 30s",
+    "description": "Caching strategy walkthrough",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short6/720/1280"
+  },
+  {
+    "id": "s7",
+    "handle": "@backend_to_frontend",
+    "caption": "Ktor content negotiation",
+    "description": "Interceptors and error handling",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short7/720/1280"
+  },
+  {
+    "id": "s8",
+    "handle": "@code_craft",
+    "caption": "Clean architecture, fast",
+    "description": "Layers and dependency rules",
+    "videoUrl": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+    "thumbnailUrl": "https://picsum.photos/seed/short8/720/1280"
+  }
+]

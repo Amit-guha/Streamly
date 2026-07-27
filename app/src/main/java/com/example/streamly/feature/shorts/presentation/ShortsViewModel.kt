@@ -1,0 +1,95 @@
+package com.example.streamly.feature.shorts.presentation
+
+import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
+import com.example.streamly.core.common.base.MVIViewModel
+import com.example.streamly.core.common.enum.Status
+import com.example.streamly.feature.shorts.di.ShortsPlayerPool
+import com.example.streamly.feature.shorts.domain.usecase.GetShortsUseCase
+import com.example.streamly.feature.shorts.presentation.contract.ShortsEffect
+import com.example.streamly.feature.shorts.presentation.contract.ShortsIntent
+import com.example.streamly.feature.shorts.presentation.contract.ShortsUiState
+import com.example.streamly.feature.shorts.presentation.model.toUiModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+@HiltViewModel
+class ShortsViewModel @Inject constructor(
+    private val shortsPlayerPool: ShortsPlayerPool,
+    private val getShortsUseCase: GetShortsUseCase,
+) : MVIViewModel<ShortsUiState, ShortsIntent, ShortsEffect>(initialState = ShortsUiState()) {
+
+    private var wasPlayingBeforeSystemPause = false
+
+    override fun onIntent(intent: ShortsIntent) {
+        when (intent) {
+            ShortsIntent.OnScreenStarted -> loadShorts()
+            is ShortsIntent.OnPageChanged -> onPageChanged(intent.index)
+            ShortsIntent.OnMuteToggled -> toggleMute()
+            ShortsIntent.OnRetryClicked -> loadShorts()
+            ShortsIntent.OnLifecyclePaused -> pauseForLifecycle()
+            ShortsIntent.OnLifecycleResumed -> resumeForLifecycle()
+            ShortsIntent.OnBackRequested -> shortsPlayerPool.pauseAll()
+        }
+    }
+
+    fun playerFor(index: Int): Player? = shortsPlayerPool.currentPlayerOrNull(index)
+
+    private fun loadShorts() {
+        viewModelScope.launch {
+            getShortsUseCase().collect { result ->
+                when (result.status) {
+                    Status.LOADING -> _state.update { it.copy(isLoading = true, errorMessage = null) }
+                    Status.SUCCESS -> _state.update {
+                        it.copy(
+                            isLoading = false,
+                            shorts = result.data.orEmpty().map { short -> short.toUiModel() },
+                            errorMessage = null,
+                        )
+                    }
+                    Status.ERROR -> _state.update {
+                        it.copy(isLoading = false, errorMessage = result.message)
+                    }
+                    Status.NOTHING -> Unit
+                }
+            }
+        }
+    }
+
+    private fun onPageChanged(index: Int) {
+        val shorts = _state.value.shorts
+        val current = shorts.getOrNull(index) ?: return
+
+        _state.update { it.copy(currentIndex = index, playerGeneration = it.playerGeneration + 1) }
+        shortsPlayerPool.prepare(index, current.videoUrl).playWhenReady = true
+
+        // Pre-buffer only the next item (forward), never both neighbours — that's what keeps
+        // the pool capped at two live players instead of three.
+        shorts.getOrNull(index + 1)?.let { next ->
+            shortsPlayerPool.prepare(index + 1, next.videoUrl).playWhenReady = false
+        }
+    }
+
+    private fun toggleMute() {
+        val isMuted = !_state.value.isMuted
+        shortsPlayerPool.setMuted(isMuted)
+        _state.update { it.copy(isMuted = isMuted) }
+    }
+
+    private fun pauseForLifecycle() {
+        wasPlayingBeforeSystemPause = shortsPlayerPool.currentPlayerOrNull(_state.value.currentIndex)?.playWhenReady == true
+        shortsPlayerPool.pauseAll()
+    }
+
+    private fun resumeForLifecycle() {
+        if (wasPlayingBeforeSystemPause) {
+            shortsPlayerPool.resume(_state.value.currentIndex)
+        }
+    }
+
+    override fun onCleared() {
+        shortsPlayerPool.releaseAll()
+    }
+}

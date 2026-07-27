@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,6 +39,7 @@ import com.example.streamly.feature.home.presentation.contract.HomeIntent
 import com.example.streamly.feature.home.presentation.contract.HomeUiState
 import com.example.streamly.feature.home.presentation.model.VideoUiModel
 import com.example.streamly.feature.player.presentation.navigation.PlayerNavKey
+import com.example.streamly.feature.shorts.presentation.navigation.ShortsNavKey
 import com.example.streamly.ui.theme.StreamlyTheme
 import kotlinx.coroutines.flow.collectLatest
 
@@ -60,6 +62,7 @@ internal fun HomeScreenRoute(
                         videoUrl = effect.video.videoUrl,
                     ),
                 )
+                HomeEffect.NavigateToShorts -> onNavigate(ShortsNavKey)
             }
         }
     }
@@ -90,6 +93,12 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = { onIntent(HomeIntent.OnShortsClicked) }) {
+                        Icon(
+                            imageVector = Icons.Filled.PlayCircle,
+                            contentDescription = stringResource(R.string.home_shorts_icon_description),
+                        )
+                    }
                     IconButton(onClick = {}) {
                         Icon(
                             imageVector = Icons.Filled.Notifications,
