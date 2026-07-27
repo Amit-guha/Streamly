@@ -318,10 +318,10 @@ Build a Facebook/Instagram-style full-screen vertical Shorts pager — data from
 Claude Code
 
 ### Commit
-pending
+fbb106b
 
 ### Task
-Build the Downloads feature end to end (real Media3 offline downloads, Player download button, Downloads screen), then iterate on it based on real-device testing and code-review feedback.
+Build the Downloads feature end to end (real Media3 offline downloads, Player download button, Downloads screen)
 
 ### Prompt
 Task: Implemented with Media3's DownloadManager/offline module - real progress and playback from local storage, not a fake progress bar. List of in-progress and completed downloads with real progress state; completed items play back from local storage; support removing a download.
