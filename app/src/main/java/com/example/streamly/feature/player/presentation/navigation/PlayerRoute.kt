@@ -14,6 +14,7 @@ data class PlayerNavKey(
 
 fun EntryProviderScope<NavigationDestination>.playerEntries(
     onBack: () -> Unit,
+    onNavigate: (NavigationDestination) -> Unit,
 ) {
     entry<PlayerNavKey> { key ->
         PlayerScreenRoute(
@@ -21,6 +22,7 @@ fun EntryProviderScope<NavigationDestination>.playerEntries(
             title = key.title,
             videoUrl = key.videoUrl,
             onBack = onBack,
+            onNavigate = onNavigate,
         )
     }
 }

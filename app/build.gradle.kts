@@ -85,6 +85,9 @@ dependencies {
     // Media3
     implementation(libs.bundles.media3)
 
+    // WorkManager (Media3 DownloadService background scheduling)
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Coil
     implementation(libs.bundles.coil)
 

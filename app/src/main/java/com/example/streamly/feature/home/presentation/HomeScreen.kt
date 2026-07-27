@@ -3,6 +3,7 @@ package com.example.streamly.feature.home.presentation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
@@ -32,6 +33,7 @@ import com.example.streamly.R
 import com.example.streamly.core.designsystem.LocalWindowSizeClass
 import com.example.streamly.core.designsystem.component.CircularCommonLoader
 import com.example.streamly.core.navigation.NavigationDestination
+import com.example.streamly.feature.downloads.presentation.navigation.DownloadsNavKey
 import com.example.streamly.feature.home.presentation.component.ErrorContent
 import com.example.streamly.feature.home.presentation.component.HomeFeedContent
 import com.example.streamly.feature.home.presentation.contract.HomeEffect
@@ -63,6 +65,7 @@ internal fun HomeScreenRoute(
                     ),
                 )
                 HomeEffect.NavigateToShorts -> onNavigate(ShortsNavKey)
+                HomeEffect.NavigateToDownloads -> onNavigate(DownloadsNavKey)
             }
         }
     }
@@ -93,6 +96,12 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = { onIntent(HomeIntent.OnDownloadsClicked) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Download,
+                            contentDescription = stringResource(R.string.home_downloads_icon_description),
+                        )
+                    }
                     IconButton(onClick = { onIntent(HomeIntent.OnShortsClicked) }) {
                         Icon(
                             imageVector = Icons.Filled.PlayCircle,

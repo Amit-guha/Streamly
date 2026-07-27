@@ -310,3 +310,50 @@ Build a Facebook/Instagram-style full-screen vertical Shorts pager — data from
 - app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
 - app/src/main/assets/shorts.json
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-28
+### Agent
+Claude Code
+
+### Commit
+fbb106b
+
+### Task
+Build the Downloads feature end to end (real Media3 offline downloads, Player download button, Downloads screen)
+
+### Prompt
+Task: Implemented with Media3's DownloadManager/offline module - real progress and playback from local storage, not a fake progress bar. List of in-progress and completed downloads with real progress state; completed items play back from local storage; support removing a download.
+
+### Changes
+- Added `feature/downloads` end to end: `DownloadItem` domain model, `DownloadsRepository`/`DownloadsRepositoryImpl`, use cases (`GetDownloadsUseCase`, `GetDownloadStatusUseCase`, `DownloadVideoUseCase`, `DeleteDownloadUseCase`, `GetTotalStorageBytesUseCase`), full MVI (`DownloadsUiState`/`Intent`/`Effect`/`ViewModel`), `DownloadsScreen` (storage-used header via real `StatFs`, list with progress bar / green "Ready to play" / remove action, 3 previews), `DownloadsRoute`/`DownloadsNavKey`
+- Added the real Media3 download engine: a shared `Cache`/`CacheDataSource.Factory` (`core/di/DownloadManagerModule.kt`) backing both the `DownloadManager` (writes) and `Media3PlayerController`'s playback `MediaSourceFactory` (reads), so a completed download plays from local storage with no special-casing
+- Wired the Player screen's Download action pill (`ActionButtonsRow`): states for not-downloaded / downloading (indeterminate spinner, no percentage — matches YouTube, real progress is still tracked in Room underneath) / downloaded / failed; tapping while a download exists opens `DownloadOptionsBottomSheet` (single "Delete from downloads" row); tapping to start one shows a "Downloading…" snackbar with a "View" action that navigates to the Downloads screen
+- Added a Downloads entry point icon in Home's `TopAppBar`, registered `downloadsEntries` in `StreamlyNavHost`
+- Fixed two real bugs found via on-device testing: (1) empty `streamKeys` downloaded every HLS bitrate rendition (~700MB for a demo clip, exhausted emulator storage) — fixed by building the `DownloadRequest` through `DownloadHelper` with `forceLowestBitrate = true`, and forcing the same rendition selection during playback of a completed download so offline playback actually hits the cached segments instead of stalling on a network fetch for a different rendition; (2) `DownloadManager.Listener.onDownloadChanged` only fires on discrete state transitions, not continuously while `STATE_DOWNLOADING`, so progress looked frozen at 0% then jumped straight to done — fixed by adding an active polling loop (`Media3DownloadListener`, every 500ms via `currentDownloads`) alongside the listener
+- Refactored the original monolithic `DownloadsRepositoryImpl` (which held a `Context`, a `CoroutineScope`, `DownloadManager.Listener`, and `DownloadHelper` request-building all in one class) into single-responsibility collaborators: `DownloadController`/`Media3DownloadController` (service dispatch), `DownloadRequestFactory` (`DownloadHelper` track selection), `Media3DownloadListener` (the one `DownloadManager.Listener` + polling loop, explicitly started from `StreamlyApp.onCreate()`), `StorageInfoProvider`/`AndroidStorageInfoProvider` (`StatFs`); `DownloadsRepositoryImpl` is now pure orchestration with no `@Singleton` (nothing depends on it being one instance now — the actual singleton scoping for consumers comes from `@Binds @Singleton` in `DownloadsModule`)
+- Added an injectable dispatcher pattern instead of hardcoding `Dispatchers.X`: `core/common/base/dispatcher/Dispatcher.kt` (`@Dispatcher(AppDispatchers)` qualifier + `IO`/`DEFAULT`/`MAIN`/`MAIN_IMMEDIATE` enum) and `core/di/DispatchersModule.kt`; every call site now injects the specific dispatcher it needs
+- Fixed the download-started snackbar rendering under the nav bar on a real device: added `.windowInsetsPadding(WindowInsets.systemBars)`, matching the pattern already used by `ShortsScreen`/`ShortPagerItem`
+
+### Files
+- app/src/main/java/com/example/streamly/feature/downloads/**
+- app/src/main/java/com/example/streamly/core/download/StreamlyDownloadService.kt
+- app/src/main/java/com/example/streamly/core/di/{DownloadManagerModule,DatabaseModule,DispatchersModule}.kt
+- app/src/main/java/com/example/streamly/core/local/database/StreamlyDatabase.kt
+- app/src/main/java/com/example/streamly/core/common/base/dispatcher/Dispatcher.kt
+- app/src/main/java/com/example/streamly/core/common/constant/DownloadConstants.kt
+- app/src/main/java/com/example/streamly/StreamlyApp.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/feature/player/di/PlayerController.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/{PlayerScreen,PlayerViewModel}.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/component/{ActionButtonsRow,DownloadOptionsBottomSheet}.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/contract/{PlayerUiState,PlayerIntent,PlayerEffect}.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/navigation/PlayerRoute.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/{HomeScreen,HomeViewModel}.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeIntent,HomeEffect}.kt
+- app/src/main/java/com/example/streamly/ui/theme/{Color,Theme}.kt
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/strings.xml
+- app/build.gradle.kts
+- gradle/libs.versions.toml

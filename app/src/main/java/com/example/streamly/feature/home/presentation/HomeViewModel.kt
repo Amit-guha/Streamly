@@ -27,6 +27,7 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.OnVideoThumbnailClicked -> sendEffect(HomeEffect.NavigateToPlayer(intent.video))
             HomeIntent.OnRetryClicked -> loadFeed()
             HomeIntent.OnShortsClicked -> sendEffect(HomeEffect.NavigateToShorts)
+            HomeIntent.OnDownloadsClicked -> sendEffect(HomeEffect.NavigateToDownloads)
         }
     }
 
