@@ -282,7 +282,7 @@ Build the Player (normal video) feature end to end, and introduce presentation-l
 Claude Code
 
 ### Commit
-pending
+9e2b883
 
 ### Task
 Build the Shorts feature: full-screen vertical pager with pooled Media3 playback.
