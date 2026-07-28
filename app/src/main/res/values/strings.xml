@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Streamly</string>
+
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_shorts">Shorts</string>
+    <string name="bottom_nav_you">You</string>
+
     <string name="profile_back">Back</string>
     <string name="profile_name_fallback">Guest</string>
     <string name="profile_no_email">No email added</string>
@@ -26,9 +31,7 @@
 
     <string name="home_notification_icon_description">Notifications</string>
     <string name="home_search_icon_description">Search</string>
-    <string name="home_shorts_icon_description">Shorts</string>
     <string name="home_downloads_icon_description">Downloads</string>
-    <string name="home_profile_icon_description">Profile</string>
     <string name="home_category_all">All</string>
     <string name="home_category_music">Music</string>
     <string name="home_category_live">Live</string>

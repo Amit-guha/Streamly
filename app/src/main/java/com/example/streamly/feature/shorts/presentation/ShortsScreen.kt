@@ -76,7 +76,14 @@ internal fun ShortsScreenRoute(
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            // Shorts now lives inside a bottom-nav tab: switching to another tab removes this
+            // composable from composition without popping any back stack entry, so onCleared()
+            // never fires. Pausing here (same as OnBackRequested) is what actually stops the
+            // pooled players/audio instead of leaving them running behind the other tabs.
+            viewModel.onIntent(ShortsIntent.OnBackRequested)
+        }
     }
 
     ShortsScreen(

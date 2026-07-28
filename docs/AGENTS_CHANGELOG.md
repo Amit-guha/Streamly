@@ -437,3 +437,33 @@ Refactor the Player screen's layout/insets/transport controls and add app-wide i
 - app/src/main/java/com/example/streamly/feature/player/di/{PlayerController,PlayerModule}.kt
 - app/src/main/java/com/example/streamly/feature/player/presentation/PlayerScreen.kt
 - app/src/main/java/com/example/streamly/feature/player/presentation/component/{PlayerSurface,UpNextItems}.kt
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-28
+### Agent
+Claude Code
+
+### Commit
+b89cdb5
+
+### Task
+Add bottom navigation with Home, Shorts, and You tabs.
+
+### Changes
+- Added `MainScreen.kt` (app-root level, not a feature): `MainNavKey` + `mainEntries()` (same `NavKey`/`EntryProviderScope` pattern as every other top-level destination) and `MainScreenRoute`, the tabbed shell shown once authenticated. Home/Shorts/Profile switch via local `rememberSaveable` tab state instead of the back stack, with `rememberSaveableStateHolder` so each tab keeps its own scroll/UI state across switches; Downloads and Player still push onto the real back stack on top of it, which is what hides the nav while they're open
+- Adaptive nav shell: Compact width (phone portrait) gets a bottom `NavigationBar`; genuine Medium/Expanded screens (foldables unfolded, tablets) get a side `NavigationRail` instead. A phone rotated to landscape reports Expanded width but stays Compact height, so it's also kept on the bottom bar (checked via the same `isCompactHeight` signal used for the Player screen's landscape fix) instead of incorrectly switching to a rail like a real tablet
+- `Splash`/sign-in now land on `MainNavKey` instead of `HomeNavKey` directly
+- Removed the now-redundant Shorts/Profile icons from Home's `TopAppBar` (the bottom nav owns that navigation now); trimmed the matching `HomeIntent`/`HomeEffect` members and their now-unused string resources
+- Deleted `HomeRoute.kt`/`ShortsRoute.kt`/`ProfileRoute.kt` — their `NavKey`s and `entries()` registrations became fully dead code once those three screens moved inside the tab shell
+- Fixed a resource-leak risk the tab shell would otherwise introduce: Shorts' pooled `ExoPlayer`s previously only paused/released when their nav entry was popped; since tab-switching no longer pops anything, `onCleared()` would never fire when leaving the Shorts tab. Added an explicit pause in `ShortsScreenRoute`'s composition-dispose so switching tabs actually stops playback instead of leaving audio running behind the other tabs
+
+### Files
+- app/src/main/java/com/example/streamly/MainScreen.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeViewModel.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeEffect,HomeIntent}.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/ShortsScreen.kt
+- app/src/main/java/com/example/streamly/feature/splash/presentation/SplashScreen.kt
+- app/src/main/res/values/strings.xml
