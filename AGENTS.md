@@ -98,6 +98,7 @@ Derive layout decisions (single-pane vs multi-pane, column counts, padding) from
 Every `<Feature>Screen` must have `@Preview` composables for 3 device sizes: mobile, foldable, and tablet.
 Use `@Preview(device = Devices.PHONE)`, `@Preview(device = Devices.FOLDABLE)`, and `@Preview(device = Devices.TABLET)` (or equivalent explicit `widthDp`/`heightDp`) to verify the layout at each `WindowSizeClass` breakpoint.
 Preview with realistic sample state, not empty/placeholder data.
+Every extracted `component/` composable also needs its own `@Preview` — see `component/` rules below.
 
 ---
 
@@ -461,6 +462,11 @@ A central app-level host (not `core` — `core` must never depend on features) a
 ### component/
 Contains reusable components used only within the feature.
 Move shared components to `core/designsystem/component`.
+
+**Rules**
+- If `<Feature>Screen.kt` is growing too big (a screen composable pulling in multiple large sub-composables), extract each sub-composable into its own file under `component/`, named after the composable (e.g. `ProfileHeader.kt`, `ProfileMenuItem.kt`).
+- One composable per file in `component/` — do not bundle multiple unrelated composables into a single file.
+- Every file in `component/` must have its own `@Preview` composable(s) with realistic sample state, wrapped in `StreamlyTheme` (add `Surface(color = MaterialTheme.colorScheme.background)` when the component has no opaque background of its own, so it doesn't preview on a transparent/white canvas).
 
 ---
 
