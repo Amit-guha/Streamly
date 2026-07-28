@@ -409,3 +409,31 @@ Implement the provided Profile screen UI. Show the user's avatar, name, email, m
 - app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeIntent,HomeEffect}.kt
 - app/src/main/java/com/example/streamly/StreamlyNavHost.kt
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-28
+### Agent
+Claude Code
+
+### Commit
+pending
+
+### Task
+Refactor the Player screen's layout/insets/transport controls and add app-wide image crossfade.
+
+### Changes
+- Reworked the mobile Player layout: `PlayerSurface`, metadata, action buttons, and the "Up Next" header now sit in a fixed (non-scrolling) `Column`; only the up-next video list scrolls, in its own `LazyColumn`
+- `PlayerSurface` now paints a solid status-bar-height strip above the video (`windowInsetsTopHeight(WindowInsets.statusBars)`) instead of letting the video draw under a translucent status bar; `PlayerScreenRoute` flips the system status bar icons to light/white for the duration of the screen via `WindowInsetsControllerCompat`, restoring the previous appearance on exit
+- Added nav-bar `contentPadding`/`windowInsetsPadding` to the scrollable regions in both the single-pane and two-pane Player layouts so content isn't hidden behind the system navigation bar
+- Fixed a real rotation bug: a landscape phone reports `WindowHeightSizeClass.Compact`, and the fixed (non-scrolling) player section could exceed that short viewport with no way to scroll to the rest of the screen. 
+- Removed the default previous/next-media buttons from `PlayerView`'s transport controls (`setShowPreviousButton(false)`/`setShowNextButton(false)`) — up next is a separate list, not a queue the player itself skips through
+- Unified the forward/back seek increment to 5s (`ExoPlayer.Builder.setSeekForwardIncrementMs`/`setSeekBackIncrementMs`, Media3's default is 15s forward / 5s back); added `AppConstants.SEEK_INCREMENT_MS`
+- `StreamlyApp` now implements Coil's `ImageLoaderFactory`, providing one app-wide `ImageLoader` with `crossfade(true)` so thumbnails fade in instead of popping in abruptly during scroll (Home feed, Up Next, Downloads, Shorts)
+
+### Files
+- app/src/main/java/com/example/streamly/StreamlyApp.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/java/com/example/streamly/feature/player/di/{PlayerController,PlayerModule}.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerScreen.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/component/{PlayerSurface,UpNextItems}.kt

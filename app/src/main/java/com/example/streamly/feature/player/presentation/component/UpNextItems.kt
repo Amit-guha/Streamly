@@ -32,8 +32,11 @@ internal fun LazyListScope.upNextItems(
     isLoading: Boolean,
     errorMessage: String?,
     onIntent: (PlayerIntent) -> Unit,
+    includeHeader: Boolean = true,
 ) {
-    item { UpNextHeader() }
+    if (includeHeader) {
+        item { UpNextHeader() }
+    }
     when {
         isLoading && upNext.isEmpty() -> item { UpNextLoading() }
         errorMessage != null && upNext.isEmpty() -> item {
@@ -46,7 +49,7 @@ internal fun LazyListScope.upNextItems(
 }
 
 @Composable
-private fun UpNextHeader(modifier: Modifier = Modifier) {
+internal fun UpNextHeader(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.player_up_next_title),
         style = MaterialTheme.typography.titleMedium,

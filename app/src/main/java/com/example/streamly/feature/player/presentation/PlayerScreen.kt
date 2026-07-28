@@ -1,14 +1,19 @@
 package com.example.streamly.feature.player.presentation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,11 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -52,6 +59,7 @@ import com.example.streamly.feature.downloads.presentation.navigation.DownloadsN
 import com.example.streamly.feature.player.presentation.component.ActionButtonsRow
 import com.example.streamly.feature.player.presentation.component.DownloadOptionsBottomSheet
 import com.example.streamly.feature.player.presentation.component.PlayerSurface
+import com.example.streamly.feature.player.presentation.component.UpNextHeader
 import com.example.streamly.feature.player.presentation.component.VideoMetadataSection
 import com.example.streamly.feature.player.presentation.component.upNextItems
 import com.example.streamly.feature.player.presentation.contract.PlayerEffect
@@ -60,6 +68,12 @@ import com.example.streamly.feature.player.presentation.contract.PlayerUiState
 import com.example.streamly.feature.player.presentation.model.VideoUiModel
 import com.example.streamly.ui.theme.StreamlyTheme
 import kotlinx.coroutines.flow.collectLatest
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
@@ -73,6 +87,7 @@ internal fun PlayerScreenRoute(
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val windowSizeClass = LocalWindowSizeClass.current
     var isExiting by remember { mutableStateOf(false) }
@@ -127,6 +142,20 @@ internal fun PlayerScreenRoute(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    // The player screen paints its own solid-black status bar strip (PlayerSurface), so the
+    // system status bar icons need to switch to light/white for the duration of this screen.
+    DisposableEffect(view) {
+        val window = view.context.findActivity()?.window
+        if (window == null) {
+            onDispose {}
+        } else {
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            val wasLightStatusBars = insetsController.isAppearanceLightStatusBars
+            insetsController.isAppearanceLightStatusBars = false
+            onDispose { insetsController.isAppearanceLightStatusBars = wasLightStatusBars }
+        }
+    }
+
     if (isExiting) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
     } else {
@@ -162,19 +191,26 @@ fun PlayerScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Two-pane needs width AND height to spare — a phone rotated to landscape is often
-    // "Expanded" width alone (commonly >840dp) but "Compact" height, and would otherwise get
-    // squeezed into a cramped tablet-style split layout instead of a normal scrolling screen.
-    val isTwoPane = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded &&
-        windowSizeClass.heightSizeClass != WindowHeightSizeClass.Compact
+    val isCompactHeight = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+    val isTwoPane = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded && !isCompactHeight
 
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        if (isTwoPane) {
+        if (isCompactHeight) {
+            PlayerSurface(
+                player = player,
+                isMuted = uiState.isMuted,
+                onBack = onBack,
+                onIntent = onIntent,
+                modifier = Modifier.fillMaxSize(),
+                useFixedAspectRatio = false,
+            )
+        } else if (isTwoPane) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     PlayerSurface(
                         player = player,
@@ -194,7 +230,10 @@ fun PlayerScreen(
                         onIntent = onIntent,
                     )
                 }
-                LazyColumn(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
+                LazyColumn(
+                    modifier = Modifier.weight(0.4f).fillMaxHeight(),
+                    contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                ) {
                     upNextItems(
                         upNext = uiState.upNext,
                         isLoading = uiState.isLoadingUpNext,
@@ -204,36 +243,39 @@ fun PlayerScreen(
                 }
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item {
-                    PlayerSurface(
-                        player = player,
-                        isMuted = uiState.isMuted,
-                        onBack = onBack,
-                        onIntent = onIntent,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                item {
-                    VideoMetadataSection(
-                        video = uiState.video,
-                        isSubscribed = uiState.isSubscribed,
-                        onIntent = onIntent,
-                    )
-                }
-                item {
-                    ActionButtonsRow(
-                        isLiked = uiState.isLiked,
-                        downloadStatus = uiState.downloadStatus,
-                        onIntent = onIntent,
-                    )
-                }
-                upNextItems(
-                    upNext = uiState.upNext,
-                    isLoading = uiState.isLoadingUpNext,
-                    errorMessage = uiState.upNextErrorMessage,
+            Column(modifier = Modifier.fillMaxSize()) {
+                PlayerSurface(
+                    player = player,
+                    isMuted = uiState.isMuted,
+                    onBack = onBack,
+                    onIntent = onIntent,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                VideoMetadataSection(
+                    video = uiState.video,
+                    isSubscribed = uiState.isSubscribed,
                     onIntent = onIntent,
                 )
+                ActionButtonsRow(
+                    isLiked = uiState.isLiked,
+                    downloadStatus = uiState.downloadStatus,
+                    onIntent = onIntent,
+                )
+                UpNextHeader()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                ) {
+                    upNextItems(
+                        upNext = uiState.upNext,
+                        isLoading = uiState.isLoadingUpNext,
+                        errorMessage = uiState.upNextErrorMessage,
+                        onIntent = onIntent,
+                        includeHeader = false,
+                    )
+                }
             }
         }
     }

@@ -1,12 +1,15 @@
 package com.example.streamly.feature.player.di
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import com.example.streamly.core.common.constant.AppConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -21,13 +24,6 @@ interface PlayerController {
     val player: Player
     val isPlaying: Boolean
 
-    /**
-     * [preferDownloadedRendition] must be true for a fully-downloaded video: the download
-     * pipeline only ever caches the lowest-bitrate HLS rendition (see DownloadsRepositoryImpl),
-     * so regular adaptive track selection would pick a *different*, uncached rendition and stall
-     * with no network. Forcing the same lowest-bitrate selection here is what makes offline
-     * playback actually hit the cache instead of the network.
-     */
     fun play(videoUrl: String, preferDownloadedRendition: Boolean = false)
     fun resume()
     fun pause()
@@ -35,7 +31,9 @@ interface PlayerController {
     fun release()
 }
 
-class Media3PlayerController @Inject constructor(
+@UnstableApi
+class Media3PlayerController @OptIn(UnstableApi::class)
+@Inject constructor(
     @ApplicationContext context: Context,
     cacheDataSourceFactory: CacheDataSource.Factory,
 ) : PlayerController {
@@ -48,6 +46,8 @@ class Media3PlayerController @Inject constructor(
     private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
         .setTrackSelector(trackSelector)
         .setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory))
+        .setSeekForwardIncrementMs(AppConstants.SEEK_INCREMENT_MS)
+        .setSeekBackIncrementMs(AppConstants.SEEK_INCREMENT_MS)
         .build()
 
     override val player: Player = exoPlayer

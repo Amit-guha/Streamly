@@ -11,4 +11,8 @@ object AppConstants {
      * the video full-bleed edge to edge. Plain Int here (not [androidx.compose.ui.unit.Dp]) so
      * this framework-free constants file stays free of a Compose import. */
     const val SHORTS_MAX_PAGER_WIDTH_DP = 480
+
+    /** Media3 defaults forward to 15s while back stays 5s — the player forces both to the same
+     * increment so the transport controls' forward/rewind buttons step by the same amount. */
+    const val SEEK_INCREMENT_MS = 5_000L
 }
