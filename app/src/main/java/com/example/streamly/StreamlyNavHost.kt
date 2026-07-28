@@ -5,8 +5,10 @@ import androidx.navigation3.runtime.entryProvider
 import com.example.streamly.core.navigation.AppNavGraph
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.core.navigation.rememberAppNavigator
+import com.example.streamly.feature.auth.authentication.presentation.navigation.AuthenticationNavKey
 import com.example.streamly.feature.auth.authentication.presentation.navigation.authenticationEntries
 import com.example.streamly.feature.auth.signinwithemail.presentation.navigation.signInWithEmailEntries
+import com.example.streamly.feature.downloads.presentation.navigation.DownloadsNavKey
 import com.example.streamly.feature.downloads.presentation.navigation.downloadsEntries
 import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.home.presentation.navigation.homeEntries
@@ -44,7 +46,11 @@ fun StreamlyNavHost() {
             homeEntries(onNavigate = navigator::navigateTo)
             downloadsEntries(onBack = navigator::navigateBack, onNavigate = navigator::navigateTo)
             playerEntries(onBack = navigator::navigateBack, onNavigate = navigator::navigateTo)
-            profileEntries(onBack = navigator::navigateBack)
+            profileEntries(
+                onBack = navigator::navigateBack,
+                onNavigateToDownloads = { navigator.navigateTo(DownloadsNavKey) },
+                onSignedOut = { navigator.replaceBackStackWith(AuthenticationNavKey) },
+            )
             shortsEntries(onBack = navigator::navigateBack)
         },
     )

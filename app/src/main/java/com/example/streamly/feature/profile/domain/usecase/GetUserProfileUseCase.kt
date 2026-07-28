@@ -6,7 +6,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class ObserveUserProfileUseCase @Inject constructor(
+class GetUserProfileUseCase @Inject constructor(
     private val appPreferences: AppPreferences,
 ) {
     operator fun invoke(): Flow<UserProfile> =
