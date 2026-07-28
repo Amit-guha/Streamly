@@ -36,11 +36,9 @@ class PlayerViewModel @Inject constructor(
     // it goes through playerController's methods instead, which is what's actually unit-tested.
     val player: Player get() = playerController.player
 
-    // Survives configuration changes (unlike a local Compose var), so a rotation's
-    // ON_PAUSE -> ON_RESUME cycle resumes playback only if it was actually playing before,
-    // instead of unconditionally forcing play() on every resume.
     private var wasPlayingBeforeSystemPause = false
     private var downloadStatusJob: Job? = null
+    private var hasStarted = false
 
     override fun onIntent(intent: PlayerIntent) {
         when (intent) {
@@ -58,12 +56,13 @@ class PlayerViewModel @Inject constructor(
             PlayerIntent.OnRetryClicked -> loadDetails(_state.value.video.id)
             PlayerIntent.OnLifecyclePaused -> pauseForLifecycle()
             PlayerIntent.OnLifecycleResumed -> resumeForLifecycle()
-            PlayerIntent.OnBackRequested -> pauseForExit()
+            PlayerIntent.OnBackRequested -> releaseForExit()
         }
     }
 
     private fun start(videoId: String, title: String, videoUrl: String) {
-        if (_state.value.video.id == videoId) return
+        if (hasStarted) return
+        hasStarted = true
         _state.update { it.copy(video = it.video.copy(id = videoId, title = title, videoUrl = videoUrl)) }
         playCurrentVideo(videoId, videoUrl)
         loadDetails(videoId)
@@ -165,8 +164,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun pauseForExit() {
-        playerController.pause()
+    private fun releaseForExit() {
+        playerController.release()
     }
 
     override fun onCleared() {

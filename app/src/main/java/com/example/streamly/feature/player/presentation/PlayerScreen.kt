@@ -1,15 +1,11 @@
 package com.example.streamly.feature.player.presentation
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,17 +31,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -69,12 +64,6 @@ import com.example.streamly.feature.player.presentation.model.VideoUiModel
 import com.example.streamly.ui.theme.StreamlyTheme
 import kotlinx.coroutines.flow.collectLatest
 
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
-
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 internal fun PlayerScreenRoute(
@@ -87,16 +76,17 @@ internal fun PlayerScreenRoute(
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val windowSizeClass = LocalWindowSizeClass.current
-    var isExiting by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val downloadStartedMessage = stringResource(R.string.player_download_started_message)
     val viewActionLabel = stringResource(R.string.player_download_started_view_action)
 
-    BackHandler(enabled = !isExiting) {
-        isExiting = true
+
+    var isPlayerVisible by rememberSaveable { mutableStateOf(true) }
+
+    BackHandler {
+        isPlayerVisible = false
         viewModel.onIntent(PlayerIntent.OnBackRequested)
         onBack()
     }
@@ -142,42 +132,24 @@ internal fun PlayerScreenRoute(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // The player screen paints its own solid-black status bar strip (PlayerSurface), so the
-    // system status bar icons need to switch to light/white for the duration of this screen.
-    DisposableEffect(view) {
-        val window = view.context.findActivity()?.window
-        if (window == null) {
-            onDispose {}
-        } else {
-            val insetsController = WindowCompat.getInsetsController(window, view)
-            val wasLightStatusBars = insetsController.isAppearanceLightStatusBars
-            insetsController.isAppearanceLightStatusBars = false
-            onDispose { insetsController.isAppearanceLightStatusBars = wasLightStatusBars }
-        }
-    }
-
-    if (isExiting) {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            PlayerScreen(
-                uiState = uiState,
-                player = viewModel.player,
-                windowSizeClass = windowSizeClass,
-                onIntent = viewModel::onIntent,
-                onBack = {
-                    isExiting = true
-                    viewModel.onIntent(PlayerIntent.OnBackRequested)
-                    onBack()
-                },
-            )
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.systemBars),
-            )
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        PlayerScreen(
+            uiState = uiState,
+            player = if (isPlayerVisible) viewModel.player else null,
+            windowSizeClass = windowSizeClass,
+            onIntent = viewModel::onIntent,
+            onBack = {
+                isPlayerVisible = false
+                viewModel.onIntent(PlayerIntent.OnBackRequested)
+                onBack()
+            },
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.systemBars),
+        )
     }
 }
 
@@ -231,8 +203,10 @@ fun PlayerScreen(
                     )
                 }
                 LazyColumn(
-                    modifier = Modifier.weight(0.4f).fillMaxHeight(),
-                    contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxHeight()
+                        .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     upNextItems(
                         upNext = uiState.upNext,
@@ -265,8 +239,8 @@ fun PlayerScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                        .weight(1f)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     upNextItems(
                         upNext = uiState.upNext,

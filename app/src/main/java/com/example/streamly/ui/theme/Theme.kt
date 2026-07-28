@@ -8,6 +8,14 @@ import androidx.compose.runtime.Composable
 
 // Light and Dark schemes are intentionally identical — Streamly uses one fixed
 // color scheme regardless of system light/dark setting.
+//
+// Every role actually referenced elsewhere in the app (via MaterialTheme.colorScheme.*) must be
+// listed explicitly in BOTH schemes below. darkColorScheme()/lightColorScheme() fall back to
+// Material3's own differing built-in defaults for any role left unset, which silently breaks the
+// "one fixed scheme" guarantee for that role even though the ones listed here stay in sync -
+// e.g. onSurfaceVariant previously fell back to Material3's dark-theme default (a light gray
+// meant for text on a dark background) while the app's actual background stayed the light
+// StreamlySurface, producing washed-out secondary text and chip labels in system dark mode.
 private val DarkColorScheme = darkColorScheme(
     primary = StreamlyBlue,
     onPrimary = StreamlyOnBlue,
@@ -21,6 +29,11 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = StreamlyOnSurface,
     surface = StreamlySurface,
     onSurface = StreamlyOnSurface,
+    surfaceVariant = StreamlySurfaceVariant,
+    onSurfaceVariant = StreamlyOnSurfaceVariant,
+    outlineVariant = StreamlyOutlineVariant,
+    error = StreamlyError,
+    onError = StreamlyOnError,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -36,6 +49,11 @@ private val LightColorScheme = lightColorScheme(
     onBackground = StreamlyOnSurface,
     surface = StreamlySurface,
     onSurface = StreamlyOnSurface,
+    surfaceVariant = StreamlySurfaceVariant,
+    onSurfaceVariant = StreamlyOnSurfaceVariant,
+    outlineVariant = StreamlyOutlineVariant,
+    error = StreamlyError,
+    onError = StreamlyOnError,
 )
 
 @Composable
