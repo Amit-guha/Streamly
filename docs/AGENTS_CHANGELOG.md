@@ -437,3 +437,36 @@ Refactor the Player screen's layout/insets/transport controls and add app-wide i
 - app/src/main/java/com/example/streamly/feature/player/di/{PlayerController,PlayerModule}.kt
 - app/src/main/java/com/example/streamly/feature/player/presentation/PlayerScreen.kt
 - app/src/main/java/com/example/streamly/feature/player/presentation/component/{PlayerSurface,UpNextItems}.kt
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+32b5857
+
+### Task
+Fix a cluster of Player screen and system-bar bugs found during on-device testing: rotation state loss, notch/nav-bar insets, a frozen video frame lingering through back-navigation, and status/navigation bar icon contrast across Home, Profile, and Shorts.
+
+### Changes
+- `PlayerViewModel`: `start()` is now a true one-shot (`hasStarted` flag) instead of comparing against the stale nav-arg videoId, so rotating after picking an Up Next video no longer reverts playback to the original video
+- `PlayerSurface`: video, native transport controls, and back/mute buttons are now inset from the status bar/display cutout/navigation bar in both portrait and fullscreen landscape, instead of drawing under them
+- `PlayerViewModel.releaseForExit()` + `PlayerScreenRoute`'s `isPlayerVisible` (`rememberSaveable`) flag: dropping the player reference on back-press removes the video `AndroidView`/`SurfaceView` from composition immediately, instead of a paused/released frame lingering on screen for the whole back-navigation transition
+- Added `core/designsystem/component/SystemBarsAppearance.kt`: a single reactive status/navigation-bar icon-color source of truth, driven by the current back-stack destination in `StreamlyNavHost`, replacing independent per-screen mount/dispose overrides that raced each other whenever two screens' Nav3 transition lifecycles overlapped
+- `themes.xml`: `Theme.Streamly` now explicitly declares `windowLightStatusBar`, `enforceStatusBarContrast`/`enforceNavigationBarContrast` = false, resolved once at window creation instead of via a runtime `Window` API call
+- `MainActivity`: `enableEdgeToEdge()` pinned to `SystemBarStyle.light(...)` for both bars instead of the system-dark-mode-following `auto` default
+- `Theme.kt`/`Color.kt`: explicitly pinned `onSurfaceVariant`, `surfaceVariant`, `outlineVariant`, `error`, `onError` to the same values in both color schemes — previously unset, so they silently fell back to Material3's differing light/dark defaults despite the "one fixed scheme" rule, washing out secondary text and chip labels in system dark mode
+- `ProfileHeader`: back button and avatar/name content now sit in a single inset-padded inner `Box` (matching `PlayerSurface`'s background-layer/content-layer pattern) instead of padding only the back button individually
+
+### Files
+- app/src/main/java/com/example/streamly/MainActivity.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/core/common/extension/ContextExt.kt
+- app/src/main/java/com/example/streamly/core/designsystem/component/SystemBarsAppearance.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/{PlayerScreen,PlayerViewModel}.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/component/PlayerSurface.kt
+- app/src/main/java/com/example/streamly/feature/profile/presentation/component/ProfileHeader.kt
+- app/src/main/java/com/example/streamly/ui/theme/{Color,Theme}.kt
+- app/src/main/res/values/themes.xml
