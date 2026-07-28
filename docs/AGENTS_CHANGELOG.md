@@ -357,3 +357,55 @@ Task: Implemented with Media3's DownloadManager/offline module - real progress a
 - app/src/main/res/values/strings.xml
 - app/build.gradle.kts
 - gradle/libs.versions.toml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-28
+### Agent
+Claude Code
+
+### Commit
+766ebc2
+
+### Task
+Add an AGENTS.md rule for extracting oversized screen composables into `component/` files with previews.
+
+
+### Changes
+- Added a `component/` rule: when `<Feature>Screen.kt` grows too big, extract each sub-composable into its own file under `presentation/component/`, named after the composable, one composable per file
+- Required every `component/` file to ship its own `@Preview`(s) with realistic sample state, wrapped in `StreamlyTheme` (plus `Surface(color = MaterialTheme.colorScheme.background)` when the component has no opaque background of its own)
+- Cross-referenced the new rule from the existing `## Previews` section
+
+### Files
+- AGENTS.md
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-28
+### Agent
+Claude Code
+
+### Commit
+9555ab6
+
+### Task
+Add the Profile sign-out flow, extract Profile's sub-composables into `component/` with previews, make the header draw full-screen behind the status bar, and wire Home -> Profile navigation.
+
+### Prompt
+Follow-up requests on `feature/profile`: "handle null here" (guard the profile collector against a blank/null emission right after sign-out); "cut this type of class and put into the component inside feature/presentation" for `ProfileMenuItem`, then `ProfileHeader`/`SignOutConfirmationDialog`; "remove status bar i need pure full screen"; "add preview for prfoile menuteim and sigout dilaog" / "profileheader also" / "set background for preview looks ugly".
+
+### Changes
+- `ProfileViewModel`: skip the state update when a profile emission has both `name` and `email` null/blank, so clearing the session doesn't flash fallback text before the `NavigateToOnboarding` effect fires
+- Renamed `ObserveUserProfileUseCase` → `GetUserProfileUseCase`; added `SignOutUseCase` (clears the session via `AppPreferences.clearSession()`)
+- Added the sign-out confirmation flow: `ProfileIntent.SignOutClicked/SignOutConfirmed/SignOutDismissed`, `ProfileUiState.isSignOutDialogVisible`, `ProfileEffect.NavigateToDownloads`/`NavigateToOnboarding`
+- Extracted `ProfileHeader`, `ProfileMenuItem`, `SignOutConfirmationDialog` out of `ProfileScreen.kt` into `feature/profile/presentation/component/`, each with its own `@Preview`(s) wrapped in `StreamlyTheme` + `Surface(color = MaterialTheme.colorScheme.background)`
+- `ProfileScreen`'s `Scaffold` now uses `contentWindowInsets = WindowInsets.navigationBars` (previously the default, which also reserved status-bar space) so the gradient header bleeds under the status bar; `ProfileHeader`'s back button applies `.windowInsetsPadding(WindowInsets.statusBars)` so it still clears the status bar icons/notch
+- Added a Profile entry point icon to Home's `TopAppBar` (`HomeIntent.OnProfileClicked` / `HomeEffect.NavigateToProfile`) and wired `profileEntries(onNavigateToDownloads, onSignedOut)` in `StreamlyNavHost`
+
+### Files
+- app/src/main/java/com/example/streamly/feature/profile/**
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeScreen.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/HomeViewModel.kt
+- app/src/main/java/com/example/streamly/feature/home/presentation/contract/{HomeIntent,HomeEffect}.kt
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/res/values/strings.xml
