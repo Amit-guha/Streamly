@@ -4,10 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -44,12 +47,14 @@ internal fun PlayerSurface(
     val isPreview = LocalInspectionMode.current
 
     Column(modifier = modifier) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsTopHeight(WindowInsets.statusBars)
-                .background(MaterialTheme.colorScheme.scrim),
-        )
+        if (useFixedAspectRatio) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+                    .background(MaterialTheme.colorScheme.scrim),
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -61,38 +66,48 @@ internal fun PlayerSurface(
                 )
                 .background(MaterialTheme.colorScheme.scrim),
         ) {
-            if (player != null && !isPreview) {
-                AndroidView(
-                    factory = { context ->
-                        PlayerView(context).apply {
-                            this.player = player
-                            useController = true
-                            setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
-                            setShowPreviousButton(false)
-                            setShowNextButton(false)
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+            // Fullscreen landscape IS the whole screen, so a cutout or the navigation bar can
+            // land on any edge. Inset the video and its controls directly so neither renders
+            // underneath them - this Box's own scrim (above) still reaches every physical edge,
+            // showing through as a letterbox bar wherever this shrinks the content.
+            val contentModifier = Modifier
+                .fillMaxSize()
+                .then(if (useFixedAspectRatio) Modifier else Modifier.windowInsetsPadding(WindowInsets.safeDrawing))
 
-            IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.player_back),
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
+            Box(modifier = contentModifier) {
+                if (player != null && !isPreview) {
+                    AndroidView(
+                        factory = { context ->
+                            PlayerView(context).apply {
+                                this.player = player
+                                useController = true
+                                setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+                                setShowPreviousButton(false)
+                                setShowNextButton(false)
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
 
-            IconButton(
-                onClick = { onIntent(PlayerIntent.OnMuteToggled) },
-                modifier = Modifier.align(Alignment.TopEnd),
-            ) {
-                Icon(
-                    imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = stringResource(if (isMuted) R.string.player_unmute else R.string.player_mute),
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
+                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.player_back),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+
+                IconButton(
+                    onClick = { onIntent(PlayerIntent.OnMuteToggled) },
+                    modifier = Modifier.align(Alignment.TopEnd),
+                ) {
+                    Icon(
+                        imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = stringResource(if (isMuted) R.string.player_unmute else R.string.player_mute),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
             }
         }
     }

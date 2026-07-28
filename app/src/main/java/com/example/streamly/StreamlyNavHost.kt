@@ -1,7 +1,11 @@
 package com.example.streamly
 
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
+import com.example.streamly.core.designsystem.LocalWindowSizeClass
+import com.example.streamly.core.designsystem.component.SystemBarsAppearance
 import com.example.streamly.core.navigation.AppNavGraph
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.core.navigation.rememberAppNavigator
@@ -12,8 +16,11 @@ import com.example.streamly.feature.downloads.presentation.navigation.DownloadsN
 import com.example.streamly.feature.downloads.presentation.navigation.downloadsEntries
 import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.home.presentation.navigation.homeEntries
+import com.example.streamly.feature.player.presentation.navigation.PlayerNavKey
 import com.example.streamly.feature.player.presentation.navigation.playerEntries
+import com.example.streamly.feature.profile.presentation.navigation.ProfileNavKey
 import com.example.streamly.feature.profile.presentation.navigation.profileEntries
+import com.example.streamly.feature.shorts.presentation.navigation.ShortsNavKey
 import com.example.streamly.feature.shorts.presentation.navigation.shortsEntries
 import com.example.streamly.feature.splash.presentation.navigation.SplashNavKey
 import com.example.streamly.feature.splash.presentation.navigation.splashEntries
@@ -27,9 +34,31 @@ import com.example.streamly.feature.splash.presentation.navigation.splashEntries
  * to land on Authentication or Home, and replaces itself in the back stack once it does, so it
  * never lingers as a back destination.
  */
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun StreamlyNavHost() {
     val navigator = rememberAppNavigator(startDestination = SplashNavKey)
+
+    // Single reactive source of truth for status/navigation bar icon color, driven by the current
+    // back-stack destination. Home, Player, and Profile all extend a dark/colored background
+    // behind the status bar (blue app bar, video, blue gradient header respectively), so they
+    // need white icons there; everything else has the default light background. Shorts is a
+    // full-screen black video feed behind BOTH bars, so it needs white icons on both. Player's
+    // navigation bar only sits over its dark video in fullscreen landscape - Home and Profile's
+    // navigation bars always sit over their light list/empty content below the header.
+    val topDestination = navigator.backStack.lastOrNull()
+    val isCompactHeight = LocalWindowSizeClass.current.heightSizeClass == WindowHeightSizeClass.Compact
+    SystemBarsAppearance(
+        lightStatusBarIcons = topDestination !is HomeNavKey &&
+            topDestination !is PlayerNavKey &&
+            topDestination !is ProfileNavKey &&
+            topDestination !is ShortsNavKey,
+        lightNavigationBarIcons = when {
+            topDestination is ShortsNavKey -> false
+            topDestination is PlayerNavKey -> !isCompactHeight
+            else -> true
+        },
+    )
 
     AppNavGraph(
         backStack = navigator.backStack,

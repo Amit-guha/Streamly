@@ -36,6 +36,10 @@ internal fun ProfileHeader(
     onBackButtonClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Background lives on its own outer Box (no chain-order reliance) so it reaches the full
+    // extent behind the status bar, while the actual content is inset-padded on a separate inner
+    // Box - the same "separate background layer vs. inset content layer" pattern PlayerSurface
+    // uses, rather than padding individual children (which drifts out of sync one at a time).
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -46,46 +50,50 @@ internal fun ProfileHeader(
                         MaterialTheme.colorScheme.secondary,
                     ),
                 ),
-            )
-            .padding(bottom = 24.dp),
+            ),
     ) {
-        IconButton(
-            onClick = onBackButtonClicked,
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(top = 8.dp, start = 8.dp),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.profile_back),
-                tint = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
-
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp, bottom = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(bottom = 24.dp),
         ) {
-            Icon(
-                imageVector = Icons.Filled.AccountCircle,
-                contentDescription = stringResource(R.string.profile_avatar_description),
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(80.dp),
-            )
-            Text(
-                text = name ?: stringResource(R.string.profile_name_fallback),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-            Text(
-                text = email ?: stringResource(R.string.profile_no_email),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
+            IconButton(
+                onClick = onBackButtonClicked,
+                modifier = Modifier.padding(top = 8.dp, start = 8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.profile_back),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp, bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = stringResource(R.string.profile_avatar_description),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(80.dp),
+                )
+                Text(
+                    text = name ?: stringResource(R.string.profile_name_fallback),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+                Text(
+                    text = email ?: stringResource(R.string.profile_no_email),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
         }
     }
 }
