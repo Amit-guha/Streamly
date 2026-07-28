@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.VerticalPager
@@ -20,6 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -41,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import com.example.streamly.R
 import com.example.streamly.core.common.constant.AppConstants
+import com.example.streamly.core.designsystem.LocalWindowSizeClass
 import com.example.streamly.core.designsystem.component.CircularCommonLoader
 import com.example.streamly.feature.shorts.presentation.component.ShortPagerItem
 import com.example.streamly.feature.shorts.presentation.component.ShortsErrorContent
@@ -50,6 +54,7 @@ import com.example.streamly.feature.shorts.presentation.model.ShortUiModel
 import com.example.streamly.ui.theme.StreamlyTheme
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 internal fun ShortsScreenRoute(
     onBack: () -> Unit,
@@ -57,6 +62,7 @@ internal fun ShortsScreenRoute(
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val windowSizeClass = LocalWindowSizeClass.current
 
     BackHandler {
         viewModel.onIntent(ShortsIntent.OnBackRequested)
@@ -81,6 +87,7 @@ internal fun ShortsScreenRoute(
 
     ShortsScreen(
         uiState = uiState,
+        windowSizeClass = windowSizeClass,
         playerFor = viewModel::playerFor,
         onIntent = viewModel::onIntent,
         onBack = {
@@ -90,10 +97,11 @@ internal fun ShortsScreenRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun ShortsScreen(
     uiState: ShortsUiState,
+    windowSizeClass: WindowSizeClass,
     playerFor: (Int) -> Player?,
     onIntent: (ShortsIntent) -> Unit,
     onBack: () -> Unit,
@@ -128,6 +136,7 @@ fun ShortsScreen(
                             short = short,
                             player = playerFor(page),
                             isMuted = uiState.isMuted,
+                            windowSizeClass = windowSizeClass,
                             onMuteToggled = { onIntent(ShortsIntent.OnMuteToggled) },
                         )
                     }
@@ -141,9 +150,11 @@ fun ShortsScreen(
 
 @Composable
 private fun ShortsTopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    // safeDrawing (not just statusBars) so a side cutout in landscape doesn't clip the back
+    // button/title either - Shorts is full-bleed on every edge, same reasoning as ShortPagerItem.
     Box(
         modifier = modifier
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(4.dp),
     ) {
         Row(
@@ -184,12 +195,14 @@ private val sampleShorts = listOf(
     ),
 )
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(name = "Mobile", device = Devices.PHONE)
 @Composable
 private fun ShortsScreenMobilePreview() {
     StreamlyTheme {
         ShortsScreen(
             uiState = ShortsUiState(shorts = sampleShorts),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(411.dp, 891.dp)),
             playerFor = { null },
             onIntent = {},
             onBack = {},
@@ -197,12 +210,29 @@ private fun ShortsScreenMobilePreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Mobile landscape", widthDp = 891, heightDp = 411)
+@Composable
+private fun ShortsScreenMobileLandscapePreview() {
+    StreamlyTheme {
+        ShortsScreen(
+            uiState = ShortsUiState(shorts = sampleShorts),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(891.dp, 411.dp)),
+            playerFor = { null },
+            onIntent = {},
+            onBack = {},
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(name = "Foldable", device = Devices.FOLDABLE)
 @Composable
 private fun ShortsScreenFoldablePreview() {
     StreamlyTheme {
         ShortsScreen(
             uiState = ShortsUiState(shorts = sampleShorts),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(673.dp, 841.dp)),
             playerFor = { null },
             onIntent = {},
             onBack = {},
@@ -210,12 +240,14 @@ private fun ShortsScreenFoldablePreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(name = "Tablet", device = Devices.TABLET)
 @Composable
 private fun ShortsScreenTabletPreview() {
     StreamlyTheme {
         ShortsScreen(
             uiState = ShortsUiState(shorts = sampleShorts),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(1280.dp, 800.dp)),
             playerFor = { null },
             onIntent = {},
             onBack = {},

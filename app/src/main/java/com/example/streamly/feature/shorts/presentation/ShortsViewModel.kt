@@ -23,6 +23,11 @@ class ShortsViewModel @Inject constructor(
 
     private var wasPlayingBeforeSystemPause = false
 
+    // currentIndex defaults to 0, same as the very first page, so a plain "index == currentIndex"
+    // guard in onPageChanged would also block that legitimate first call, not just later replays.
+    // This distinguishes "first time reaching this index" from "already processed" instead.
+    private var hasStartedFirstPage = false
+
     override fun onIntent(intent: ShortsIntent) {
         when (intent) {
             ShortsIntent.OnScreenStarted -> loadShorts()
@@ -59,8 +64,14 @@ class ShortsViewModel @Inject constructor(
     }
 
     private fun onPageChanged(index: Int) {
+        // rememberPagerState() isn't preserved across configuration changes, so its
+        // snapshotFlow(pagerState.currentPage) re-subscribes fresh after rotation and immediately
+        // replays whatever page we're already on. Without this guard, that replay would be
+        // treated as a genuine swipe and force playback back on over a user's manual pause.
+        if (hasStartedFirstPage && index == _state.value.currentIndex) return
         val shorts = _state.value.shorts
         val current = shorts.getOrNull(index) ?: return
+        hasStartedFirstPage = true
 
         _state.update { it.copy(currentIndex = index, playerGeneration = it.playerGeneration + 1) }
         shortsPlayerPool.prepare(index, current.videoUrl).playWhenReady = true
