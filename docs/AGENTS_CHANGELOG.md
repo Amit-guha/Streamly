@@ -392,7 +392,7 @@ Claude Code
 Add the Profile sign-out flow, extract Profile's sub-composables into `component/` with previews, make the header draw full-screen behind the status bar, and wire Home -> Profile navigation.
 
 ### Prompt
-Follow-up requests on `feature/profile`: "handle null here" (guard the profile collector against a blank/null emission right after sign-out); "cut this type of class and put into the component inside feature/presentation" for `ProfileMenuItem`, then `ProfileHeader`/`SignOutConfirmationDialog`; "remove status bar i need pure full screen"; "add preview for prfoile menuteim and sigout dilaog" / "profileheader also" / "set background for preview looks ugly".
+Implement the provided Profile screen UI. Show the user's avatar, name, email, menu items (Downloads, History, Settings), and a Sign Out action with a confirmation dialog. Confirming sign-out should clear the session and return the user to the onboarding flow. Follow the project's existing architecture and coding conventions.
 
 ### Changes
 - `ProfileViewModel`: skip the state update when a profile emission has both `name` and `email` null/blank, so clearing the session doesn't flash fallback text before the `NavigateToOnboarding` effect fires
