@@ -38,14 +38,6 @@ import com.example.streamly.feature.splash.presentation.navigation.splashEntries
 @Composable
 fun StreamlyNavHost() {
     val navigator = rememberAppNavigator(startDestination = SplashNavKey)
-
-    // Single reactive source of truth for status/navigation bar icon color, driven by the current
-    // back-stack destination. Home, Player, and Profile all extend a dark/colored background
-    // behind the status bar (blue app bar, video, blue gradient header respectively), so they
-    // need white icons there; everything else has the default light background. Shorts is a
-    // full-screen black video feed behind BOTH bars, so it needs white icons on both. Player's
-    // navigation bar only sits over its dark video in fullscreen landscape - Home and Profile's
-    // navigation bars always sit over their light list/empty content below the header.
     val topDestination = navigator.backStack.lastOrNull()
     val isCompactHeight = LocalWindowSizeClass.current.heightSizeClass == WindowHeightSizeClass.Compact
     SystemBarsAppearance(
