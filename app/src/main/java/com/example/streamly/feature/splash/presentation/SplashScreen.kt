@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.streamly.MainNavKey
 import com.example.streamly.core.designsystem.component.CircularCommonLoader
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.feature.auth.authentication.presentation.navigation.AuthenticationNavKey
-import com.example.streamly.feature.home.presentation.navigation.HomeNavKey
 import com.example.streamly.feature.splash.presentation.contract.SplashEffect
 import com.example.streamly.feature.splash.presentation.contract.SplashUiState
 import com.example.streamly.ui.theme.StreamlyTheme
@@ -29,7 +29,7 @@ internal fun SplashScreenRoute(
     LaunchedEffect(viewModel.effect) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
-                SplashEffect.NavigateToHome -> onNavigate(HomeNavKey)
+                SplashEffect.NavigateToHome -> onNavigate(MainNavKey)
                 SplashEffect.NavigateToAuthentication -> onNavigate(AuthenticationNavKey)
             }
         }
