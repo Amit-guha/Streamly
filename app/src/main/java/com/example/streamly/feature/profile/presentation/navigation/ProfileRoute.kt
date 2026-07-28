@@ -10,8 +10,14 @@ data object ProfileNavKey : NavigationDestination
 
 fun EntryProviderScope<NavigationDestination>.profileEntries(
     onBack: () -> Unit,
+    onNavigateToDownloads: () -> Unit,
+    onSignedOut: () -> Unit,
 ) {
     entry<ProfileNavKey> {
-        ProfileScreenRoute(onBack = onBack)
+        ProfileScreenRoute(
+            onBack = onBack,
+            onNavigateToDownloads = onNavigateToDownloads,
+            onSignedOut = onSignedOut,
+        )
     }
 }

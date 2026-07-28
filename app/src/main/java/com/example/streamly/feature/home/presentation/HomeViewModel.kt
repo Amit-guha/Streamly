@@ -28,6 +28,7 @@ class HomeViewModel @Inject constructor(
             HomeIntent.OnRetryClicked -> loadFeed()
             HomeIntent.OnShortsClicked -> sendEffect(HomeEffect.NavigateToShorts)
             HomeIntent.OnDownloadsClicked -> sendEffect(HomeEffect.NavigateToDownloads)
+            HomeIntent.OnProfileClicked -> sendEffect(HomeEffect.NavigateToProfile)
         }
     }
 

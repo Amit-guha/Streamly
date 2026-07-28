@@ -3,6 +3,7 @@ package com.example.streamly.feature.home.presentation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayCircle
@@ -41,6 +42,7 @@ import com.example.streamly.feature.home.presentation.contract.HomeIntent
 import com.example.streamly.feature.home.presentation.contract.HomeUiState
 import com.example.streamly.feature.home.presentation.model.VideoUiModel
 import com.example.streamly.feature.player.presentation.navigation.PlayerNavKey
+import com.example.streamly.feature.profile.presentation.navigation.ProfileNavKey
 import com.example.streamly.feature.shorts.presentation.navigation.ShortsNavKey
 import com.example.streamly.ui.theme.StreamlyTheme
 import kotlinx.coroutines.flow.collectLatest
@@ -66,6 +68,7 @@ internal fun HomeScreenRoute(
                 )
                 HomeEffect.NavigateToShorts -> onNavigate(ShortsNavKey)
                 HomeEffect.NavigateToDownloads -> onNavigate(DownloadsNavKey)
+                HomeEffect.NavigateToProfile -> onNavigate(ProfileNavKey)
             }
         }
     }
@@ -118,6 +121,12 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Filled.Search,
                             contentDescription = stringResource(R.string.home_search_icon_description),
+                        )
+                    }
+                    IconButton(onClick = { onIntent(HomeIntent.OnProfileClicked) }) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = stringResource(R.string.home_profile_icon_description),
                         )
                     }
                 },
