@@ -470,3 +470,32 @@ Fix a cluster of Player screen and system-bar bugs found during on-device testin
 - app/src/main/java/com/example/streamly/feature/profile/presentation/component/ProfileHeader.kt
 - app/src/main/java/com/example/streamly/ui/theme/{Color,Theme}.kt
 - app/src/main/res/values/themes.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+019f001
+
+### Task
+Fix a cluster of Shorts screen bugs found during on-device testing: notch/nav-bar insets in landscape, the progress bar overlapping the action rail, no loading feedback per item, a stuck-on-pause-lost-on-rotation bug, and permanently-visible transport controls.
+
+### Changes
+- `ShortPagerItem`: the whole content layer (video included, not just the overlay) is now inset with `WindowInsets.safeDrawing`, matching the same reasoning as the Player screen fix — Shorts is full-bleed on every edge, so a cutout or the navigation bar can land anywhere depending on rotation
+- Fixed the progress bar running under the action rail's mute button in landscape: rather than a fixed end-padding guess, `ShortPagerItem` now branches on `windowSizeClass.heightSizeClass == Compact` — in that mode the progress bar/caption column and the action rail share one `Row` (`Modifier.weight(1f)` on the column) so Compose measures the rail's actual width, instead of two independently-positioned elements that only avoided overlapping by chance of screen proportions
+- Added a buffering/loading indicator: `rememberIsBuffering` (`ShortBufferingState.kt`) observes `Player.EVENT_PLAYBACK_STATE_CHANGED` via Media3 Compose's own `Player.observeState(...)` utility (no ready-made "buffering" state holder exists, unlike play/pause/progress); shown via the existing shared `CircularCommonLoader` (`isBlockingInteraction = false` so the action rail stays usable while a single item loads) in place of the transport controls, rather than overlaid on top of them
+- Extracted `ShortThumbnail` into its own file, matching the project's one-composable-per-file convention (was inlined in `ShortPagerItem.kt`)
+- Rebuilt `ShortProgressBar` as a thin red line with a small dot thumb (matching YouTube Shorts' reference look, per user request) instead of Material3's default thick track/large thumb. First attempt customized `Slider`'s `thumb`/`track` slots, but that API's internal layout math positions the two slots using assumptions tied to the default (much larger) thumb size, leaving the dot visibly off-center against a thin custom track no matter how the slots were resized (confirmed via pixel-level measurement) — replaced with a hand-built `Box` + `detectHorizontalDragGestures`, track and thumb both aligned against the same parent, so there's nothing hidden left to fight
+- `ShortsViewModel.onPageChanged()`: added a `hasStartedFirstPage` guard so a call replaying the *same* index (not a genuine swipe) is a no-op. `rememberPagerState()` isn't preserved across configuration changes, so its `snapshotFlow(pagerState.currentPage)` collector re-subscribes fresh after rotation and immediately replays the current page, which `onPageChanged` couldn't previously distinguish from a real swipe — it force-set `playWhenReady = true` every time, silently resuming a video the user had manually paused right before rotating. `currentIndex` defaults to `0`, same as the very first page, so a plain index-equality guard alone would have also blocked the legitimate first autoplay - `hasStartedFirstPage` lets that one call through regardless of index
+- `ShortPlayerControls` (play/pause + both seek buttons) now starts hidden and fades in on tap instead of sitting on top of the video permanently; auto-hides after 3 seconds of no further interaction (matching ExoPlayer's own default `PlayerView` timeout) but only while actively playing — pausing leaves controls visible indefinitely, since hiding them would strand the user with no visible way to resume. A passive (non-consuming) `pointerInput` over the controls region resets the hide timer on taps to individual buttons too, not just the background tap that also toggles play/pause
+
+### Files
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/ShortsScreen.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/ShortsViewModel.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortPagerItem.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortProgressBar.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortBufferingState.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortThumbnail.kt
