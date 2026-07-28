@@ -417,7 +417,7 @@ Implement the provided Profile screen UI. Show the user's avatar, name, email, m
 Claude Code
 
 ### Commit
-pending
+634b24d
 
 ### Task
 Refactor the Player screen's layout/insets/transport controls and add app-wide image crossfade.
