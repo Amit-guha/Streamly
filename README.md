@@ -40,6 +40,20 @@ tool throughout, not just autocomplete.
 | 6 | Profile | `feature/profile` | Avatar, name/email (real if signed in with email, a mocked "Guest" placeholder otherwise); of the menu links only Downloads and Sign out are functional — Watch history and Settings are disabled stubs |
 | 7 | Sign-out | `feature/profile/presentation/component/SignOutConfirmationDialog.kt` | Confirmation dialog; confirming clears the session and returns to onboarding                                                                                                 |
 
+## Screenshots
+
+| Splash | Authentication | Home |
+|---|---|---|
+| ![Splash](docs/screenshots/splash.png) | ![Authentication](docs/screenshots/authentication.png) | ![Home](docs/screenshots/home.png) |
+
+| Player | Downloads (in progress) | Downloads (completed) |
+|---|---|---|
+| ![Player](docs/screenshots/player.png) | ![Downloads in progress](docs/screenshots/downloads_in_progress.png) | ![Downloads completed](docs/screenshots/downloads_completed.png) |
+
+| Profile |
+|---|
+| ![Profile](docs/screenshots/profile.png) |
+
 ## Tech Stack
 
 - **Language**: Kotlin
