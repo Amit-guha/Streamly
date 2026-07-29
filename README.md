@@ -40,20 +40,6 @@ tool throughout, not just autocomplete.
 | 6 | Profile | `feature/profile` | Avatar, name/email (real if signed in with email, a mocked "Guest" placeholder otherwise); of the menu links only Downloads and Sign out are functional — Watch history and Settings are disabled stubs |
 | 7 | Sign-out | `feature/profile/presentation/component/SignOutConfirmationDialog.kt` | Confirmation dialog; confirming clears the session and returns to onboarding                                                                                                 |
 
-## Screenshots
-
-| Splash | Authentication | Home |
-|---|---|---|
-| ![Splash](docs/screenshots/splash.png) | ![Authentication](docs/screenshots/authentication.png) | ![Home](docs/screenshots/home.png) |
-
-| Player | Downloads (in progress) | Downloads (completed) |
-|---|---|---|
-| ![Player](docs/screenshots/player.png) | ![Downloads in progress](docs/screenshots/downloads_in_progress.png) | ![Downloads completed](docs/screenshots/downloads_completed.png) |
-
-| Profile |
-|---|
-| ![Profile](docs/screenshots/profile.png) |
-
 ## Tech Stack
 
 - **Language**: Kotlin
@@ -209,3 +195,21 @@ Or open the project in Android Studio and run the `app` configuration on an emul
 
 AI-agent-assisted work on this codebase is logged chronologically in
 [docs/AGENTS_CHANGELOG.md](docs/AGENTS_CHANGELOG.md).
+
+## Screenshots
+
+<table>
+<tr>
+<td align="center"><img src="docs/screenshots/splash.png" width="200" alt="Splash"><br>Splash</td>
+<td align="center"><img src="docs/screenshots/authentication.png" width="200" alt="Authentication"><br>Authentication</td>
+<td align="center"><img src="docs/screenshots/home.png" width="200" alt="Home"><br>Home</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/player.png" width="200" alt="Player"><br>Player</td>
+<td align="center"><img src="docs/screenshots/downloads_in_progress.png" width="200" alt="Downloads in progress"><br>Downloads (in progress)</td>
+<td align="center"><img src="docs/screenshots/downloads_completed.png" width="200" alt="Downloads completed"><br>Downloads (completed)</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/profile.png" width="200" alt="Profile"><br>Profile</td>
+</tr>
+</table>
