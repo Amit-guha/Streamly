@@ -590,3 +590,47 @@ Track how a user signed in (guest / email / Google) and block guests from downlo
 - app/src/main/java/com/example/streamly/feature/player/presentation/PlayerViewModel.kt
 - app/src/main/java/com/example/streamly/feature/player/presentation/contract/PlayerEffect.kt
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+b080189
+
+### Task
+Add app-wide no-internet detection with a global snackbar, and auto-recover playback that stalls due to a network load error, in both Shorts and the normal Player.
+
+### Prompt
+Implement a centralized No Internet feature. Whenever the device is offline, display a Snackbar on the current screen.
+
+### Changes
+- Added `core/domain/connectivity/NetworkMonitor.kt` (interface) + `core/data/connectivity/NetworkMonitorImpl.kt` (`ConnectivityManager.NetworkCallback`-backed `callbackFlow`, tracking the full set of matching networks rather than trusting a single "active" one, `flowOn(IO)`, `.conflate()`), bound via `core/di/ConnectivityModule.kt`; added the `ACCESS_NETWORK_STATE` manifest permission
+- Added `MainScreen.kt` + `MainViewModel.kt` (app root, alongside `MainActivity`): `MainScreen` wraps `StreamlyNavHost()` (kept navigation-only) in a `Box` with its own `SnackbarHost`, showing an indefinite-duration "No internet connection" snackbar for as long as `MainViewModel.isOffline` is true — dismissed automatically when `LaunchedEffect(isOffline)`'s key change cancels the in-flight `showSnackbar()` call on reconnect
+- Diagnosed why playback doesn't recover on its own: ExoPlayer's default `LoadErrorHandlingPolicy` retries a failed load ~6 times with backoff, then gives up, fires `onPlayerError`, and parks the player in terminal `STATE_IDLE` — it does not retry again once connectivity returns, and (contrary to first assumption) a bare `prepare()` alone doesn't resume playback either; `playWhenReady` has to be re-asserted too, matching what tapping the native play/pause button does under the hood
+- Added `core/domain/connectivity/ObserveNetworkReconnectedUseCase.kt` — emits once per offline→online transition (`distinctUntilChanged().drop(1).filter{it}`); shared by both features (moved here from two near-identical per-feature copies after being asked not to duplicate it)
+- `ShortsPlayerPool.retryErroredPlayers(currentIndex)` (new) — re-`prepare()`s any pooled player with a non-null `playerError`, forcing `playWhenReady` only for `currentIndex` so a failed pre-buffer on the adjacent (not-yet-visible) short doesn't auto-start it; `ShortsViewModel` collects the reconnect use case in `init` and calls it
+- `PlayerController.retryIfErrored()` (new) — same fix for the single-video Player; `PlayerViewModel` collects the same use case in `init`
+- `ShortBufferingState.rememberIsBuffering()`: was only true for `STATE_BUFFERING`, so the spinner vanished the instant ExoPlayer gave up retrying, leaving a silently frozen frame for the whole outage (only reappearing once reconnect-retry re-entered `STATE_BUFFERING`); now also true for `STATE_IDLE` with a non-null `playerError`, and observes `Player.EVENT_PLAYER_ERROR` alongside the existing playback-state event
+- Fixed a dark-mode theming bug found along the way: `ModalBottomSheet`/`AlertDialog` default to `surfaceContainerLow`/`surfaceContainerHigh`, roles `Theme.kt` doesn't pin identically across light/dark (only `surface`/`onSurface` and a few others are), so they silently fell back to Material3's differing dark-mode defaults and rendered near-black-on-black; `DownloadOptionsBottomSheet` and `SignOutConfirmationDialog` now pin `containerColor`/content colors explicitly to `MaterialTheme.colorScheme.surface`/`onSurface`
+- Added `AppConstants.CONNECTIVITY_STOP_TIMEOUT_MILLIS` and `AppConstants.SHORTS_PLAYER_POOL_MAX_SIZE`; `ShortsPlayerPool`'s seek-increment constant now reuses the existing `AppConstants.SEEK_INCREMENT_MS` instead of duplicating it
+
+### Files
+- app/src/main/java/com/example/streamly/MainActivity.kt
+- app/src/main/java/com/example/streamly/MainScreen.kt
+- app/src/main/java/com/example/streamly/MainViewModel.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/java/com/example/streamly/core/data/connectivity/NetworkMonitorImpl.kt
+- app/src/main/java/com/example/streamly/core/di/ConnectivityModule.kt
+- app/src/main/java/com/example/streamly/core/domain/connectivity/{NetworkMonitor,ObserveNetworkReconnectedUseCase}.kt
+- app/src/main/java/com/example/streamly/feature/player/di/PlayerController.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerViewModel.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/component/DownloadOptionsBottomSheet.kt
+- app/src/main/java/com/example/streamly/feature/profile/presentation/component/SignOutConfirmationDialog.kt
+- app/src/main/java/com/example/streamly/feature/shorts/di/ShortsPlayerPool.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/ShortsViewModel.kt
+- app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortBufferingState.kt
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/strings.xml
