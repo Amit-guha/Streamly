@@ -8,6 +8,7 @@ import com.example.streamly.core.common.enum.Status
 import com.example.streamly.feature.downloads.domain.usecase.DeleteDownloadUseCase
 import com.example.streamly.feature.downloads.domain.usecase.DownloadVideoUseCase
 import com.example.streamly.feature.downloads.domain.usecase.GetDownloadStatusUseCase
+import com.example.streamly.core.domain.connectivity.ObserveNetworkReconnectedUseCase
 import com.example.streamly.feature.player.di.PlayerController
 import com.example.streamly.feature.player.domain.usecase.GetVideoDetailsUseCase
 import com.example.streamly.feature.player.domain.usecase.IsGuestUserUseCase
@@ -31,6 +32,7 @@ class PlayerViewModel @Inject constructor(
     private val deleteDownloadUseCase: DeleteDownloadUseCase,
     private val getDownloadStatusUseCase: GetDownloadStatusUseCase,
     private val isGuestUserUseCase: IsGuestUserUseCase,
+    private val observeNetworkReconnectedUseCase: ObserveNetworkReconnectedUseCase,
 ) : MVIViewModel<PlayerUiState, PlayerIntent, PlayerEffect>(initialState = PlayerUiState()) {
 
     // Forwarded straight through — only PlayerSurface/PlayerView needs this, for native
@@ -41,6 +43,17 @@ class PlayerViewModel @Inject constructor(
     private var wasPlayingBeforeSystemPause = false
     private var downloadStatusJob: Job? = null
     private var hasStarted = false
+
+    init {
+        // A video's HLS load can fail outright with no internet; ExoPlayer won't retry on its
+        // own once it gives up, so nudge the player to retry as soon as connectivity is restored
+        // instead of leaving it stuck until the user manually taps play again.
+        viewModelScope.launch {
+            observeNetworkReconnectedUseCase().collect {
+                playerController.retryIfErrored()
+            }
+        }
+    }
 
     override fun onIntent(intent: PlayerIntent) {
         when (intent) {

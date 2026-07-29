@@ -28,6 +28,7 @@ interface PlayerController {
     fun resume()
     fun pause()
     fun setMuted(muted: Boolean)
+    fun retryIfErrored()
     fun release()
 }
 
@@ -74,6 +75,18 @@ class Media3PlayerController @OptIn(UnstableApi::class)
 
     override fun setMuted(muted: Boolean) {
         player.volume = if (muted) 0f else 1f
+    }
+
+    // A load failure (e.g. no internet) exhausts ExoPlayer's own retry/backoff and leaves the
+    // player parked in STATE_IDLE with a playerError — it does not recover on its own once
+    // connectivity returns. The MediaItem is still set, so prepare() is enough to reload it, but
+    // prepare() alone doesn't resume playback — that's what re-asserting playWhenReady does,
+    // matching what tapping the native play/pause button does under the hood.
+    override fun retryIfErrored() {
+        if (player.playerError != null) {
+            player.prepare()
+            player.playWhenReady = true
+        }
     }
 
     override fun release() {
