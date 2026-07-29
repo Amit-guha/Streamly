@@ -120,8 +120,12 @@ class PlayerViewModel @Inject constructor(
 
     private fun removeCurrentDownload() {
         val videoId = _state.value.video.id
+        val wasCompleted = _state.value.downloadStatus == DownloadStatus.COMPLETED
         viewModelScope.launch { deleteDownloadUseCase(videoId) }
         _state.update { it.copy(showDownloadOptionsSheet = false) }
+        if (!wasCompleted) return
+        releaseForExit()
+        sendEffect(PlayerEffect.NavigateToDownloads)
     }
 
     private fun loadDetails(videoId: String) {
