@@ -110,8 +110,8 @@ fun DownloadsScreen(
                 Text(
                     text = stringResource(
                         R.string.downloads_storage_used,
-                        formatBytes(uiState.usedStorageBytes),
-                        formatBytes(uiState.totalStorageBytes),
+                        uiState.usedStorageBytes.formatAsGigabytes(),
+                        uiState.totalStorageBytes.formatAsGigabytes(),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -143,10 +143,7 @@ fun DownloadsScreen(
     }
 }
 
-private fun formatBytes(bytes: Long): String {
-    val gigabytes = bytes / 1_000_000_000.0
-    return "%.1f GB".format(gigabytes)
-}
+private fun Long.formatAsGigabytes(): String = "%.1f GB".format(this / 1_000_000_000.0)
 
 private val sampleDownloads = listOf(
     DownloadItem(

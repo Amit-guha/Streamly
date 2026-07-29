@@ -66,7 +66,21 @@ fun StreamlyNavHost() {
             )
             homeEntries(onNavigate = navigator::navigateTo)
             downloadsEntries(onBack = navigator::navigateBack, onNavigate = navigator::navigateTo)
-            playerEntries(onBack = navigator::navigateBack, onNavigate = navigator::navigateTo)
+            playerEntries(
+                onBack = navigator::navigateBack,
+                onNavigate = navigator::navigateTo,
+                // Deleting removes the video entirely, so a plain navigateBack() pop isn't
+                // enough: Player can be pushed onto the stack from two places (directly from
+                // Downloads, and from its own "download started" snackbar View action), so a
+                // stale entry for the deleted video could still be sitting further down. Drop
+                // every Player entry and land on Downloads, so back can never resurrect it.
+                onNavigateToDownloadsAfterDelete = {
+                    navigator.backStack.removeAll { it is PlayerNavKey }
+                    if (navigator.backStack.lastOrNull() != DownloadsNavKey) {
+                        navigator.backStack.add(DownloadsNavKey)
+                    }
+                },
+            )
             profileEntries(
                 onBack = navigator::navigateBack,
                 onNavigateToDownloads = { navigator.navigateTo(DownloadsNavKey) },

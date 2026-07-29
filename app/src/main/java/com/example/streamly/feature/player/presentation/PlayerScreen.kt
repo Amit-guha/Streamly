@@ -72,6 +72,7 @@ internal fun PlayerScreenRoute(
     videoUrl: String,
     onBack: () -> Unit,
     onNavigate: (NavigationDestination) -> Unit,
+    onNavigateToDownloadsAfterDelete: () -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -115,6 +116,11 @@ internal fun PlayerScreenRoute(
                     if (result == SnackbarResult.ActionPerformed) {
                         onNavigate(DownloadsNavKey)
                     }
+                }
+                PlayerEffect.NavigateToDownloads -> {
+                    isPlayerVisible = false
+                    viewModel.onIntent(PlayerIntent.OnBackRequested)
+                    onNavigateToDownloadsAfterDelete()
                 }
             }
         }
