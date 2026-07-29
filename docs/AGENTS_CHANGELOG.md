@@ -526,3 +526,67 @@ Add real download progress/completion notifications, a notification permission r
 - app/src/main/java/com/example/streamly/StreamlyApp.kt
 - app/src/main/AndroidManifest.xml
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+36e6944
+
+### Task
+Fix :  Player leaving the user stranded on a deleted video after removing the currently playing completed download.
+
+### Changes
+- `PlayerViewModel.removeCurrentDownload()`: when the deleted download was `COMPLETED` (i.e. actively backing the video being watched), releases the player and sends a new `PlayerEffect.NavigateToDownloads` instead of leaving Player on-screen with no video
+- `PlayerScreenRoute` handles `PlayerEffect.NavigateToDownloads` by hiding the player and invoking a new `onNavigateToDownloadsAfterDelete` callback (plumbed through `playerEntries()`/`PlayerRoute.kt`)
+- `StreamlyNavHost` wires `onNavigateToDownloadsAfterDelete` to strip every `PlayerNavKey` entry from the back stack (not just pop one) before landing on Downloads — Player can be pushed from Downloads directly or from its own "download started" snackbar action, so a plain back-pop could otherwise resurrect a stale entry for the now-deleted video
+- `DownloadsScreen`: replaced the private top-level `formatBytes()` function with a `Long.formatAsGigabytes()` extension
+
+### Files
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/feature/downloads/presentation/DownloadsScreen.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerScreen.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerViewModel.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/contract/PlayerEffect.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/navigation/PlayerRoute.kt
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+b960ea2
+
+### Task
+Track how a user signed in (guest / email / Google) and block guests from downloading videos in Player.
+
+### Prompt
+"first you have to check is that continue as guest. then you have to save as a userType Guest. After that when video playing and click the download button below playerview, if this is guest then said 'Please sign in with your email or continue with Google to download videos.' In Guest Mode Profile Section will be name Guest, No email added — you already handle this. If login with email then you already get the name and email. If login with Google then display name as Google User, email google.user@example.com. You don't make any work on profile screen."
+
+### Changes
+- Added `core/common/enum/UserType.kt` (`GUEST`/`EMAIL`/`GOOGLE`); extended `AppPreferences`/`AppPreferencesImpl` with `userTypeFlow`/`setUserType()` backed by a new `KEY_USER_TYPE` DataStore key
+- `SignInUseCase` (Google/guest path) now takes a `UserType`: persists it always, and for `GOOGLE` also saves a fixed placeholder identity (`AppConstants.GOOGLE_USER_NAME` = "Google User", `AppConstants.GOOGLE_USER_EMAIL` = "google.user@example.com") since there's no real Google Sign-In integration yet
+- `AuthenticationViewModel` passes `UserType.GOOGLE`/`UserType.GUEST` to `SignInUseCase` from the respective button intents
+- Renamed `SaveUserProfileUseCase` → `SignInWithEmailUseCase`; it now also persists `UserType.EMAIL` alongside the captured name/email
+- Added `IsGuestUserUseCase` (`feature/player/domain/usecase/`), injected into `PlayerViewModel`; `onDownloadIconClicked()` checks it before starting a download and sends a new `PlayerEffect.ShowGuestDownloadBlockedSnackbar` (wired in `PlayerScreen.kt` to a snackbar with the new `player_guest_download_blocked_message` string) instead, for guests only
+- Profile screen left untouched — its existing null-name/null-email fallback to "Guest" / "No email added" already covers the guest case correctly
+
+### Files
+- app/src/main/java/com/example/streamly/core/common/constant/{AppConstants,DataStoreConstants}.kt
+- app/src/main/java/com/example/streamly/core/common/enum/UserType.kt
+- app/src/main/java/com/example/streamly/core/data/storage/datastore/AppPreferencesImpl.kt
+- app/src/main/java/com/example/streamly/core/domain/storage/datastore/AppPreferences.kt
+- app/src/main/java/com/example/streamly/feature/auth/authentication/domain/usecase/SignInUseCase.kt
+- app/src/main/java/com/example/streamly/feature/auth/authentication/presentation/AuthenticationViewModel.kt
+- app/src/main/java/com/example/streamly/feature/auth/signinwithemail/domain/usecase/SignInWithEmailUseCase.kt
+- app/src/main/java/com/example/streamly/feature/auth/signinwithemail/presentation/SignInWithEmailViewModel.kt
+- app/src/main/java/com/example/streamly/feature/player/domain/usecase/IsGuestUserUseCase.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerScreen.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/PlayerViewModel.kt
+- app/src/main/java/com/example/streamly/feature/player/presentation/contract/PlayerEffect.kt
+- app/src/main/res/values/strings.xml

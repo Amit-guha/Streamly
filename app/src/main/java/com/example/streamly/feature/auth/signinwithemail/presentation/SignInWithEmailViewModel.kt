@@ -2,7 +2,7 @@ package com.example.streamly.feature.auth.signinwithemail.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.example.streamly.core.common.base.MVIViewModel
-import com.example.streamly.feature.auth.signinwithemail.domain.usecase.SaveUserProfileUseCase
+import com.example.streamly.feature.auth.signinwithemail.domain.usecase.SignInWithEmailUseCase
 import com.example.streamly.feature.auth.signinwithemail.presentation.contract.SignInWithEmailEffect
 import com.example.streamly.feature.auth.signinwithemail.presentation.contract.SignInWithEmailIntent
 import com.example.streamly.feature.auth.signinwithemail.presentation.contract.SignInWithEmailUiState
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SignInWithEmailViewModel @Inject constructor(
-    private val saveUserProfileUseCase: SaveUserProfileUseCase,
+    private val signInWithEmailUseCase: SignInWithEmailUseCase,
 ) : MVIViewModel<SignInWithEmailUiState, SignInWithEmailIntent, SignInWithEmailEffect>(
     initialState = SignInWithEmailUiState(),
 ) {
@@ -35,7 +35,7 @@ class SignInWithEmailViewModel @Inject constructor(
         if (name == null || email == null) return
 
         viewModelScope.launch {
-            saveUserProfileUseCase(name = name, email = email)
+            signInWithEmailUseCase(name = name, email = email)
             sendEffect(SignInWithEmailEffect.NavigateToHome)
         }
     }

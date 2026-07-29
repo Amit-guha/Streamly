@@ -59,6 +59,7 @@
     <string name="player_download_options_delete">Delete from downloads</string>
     <string name="player_download_started_message">Downloading…</string>
     <string name="player_download_started_view_action">View</string>
+    <string name="player_guest_download_blocked_message">Please sign in with your email or continue with Google to download videos.</string>
 
     <string name="shorts_title">Shorts</string>
     <string name="shorts_back">Back</string>
