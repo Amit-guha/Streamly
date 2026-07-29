@@ -709,3 +709,29 @@ Adopt the AndroidX SplashScreen API to remove the white flash before the app's c
 - app/src/main/java/com/example/streamly/MainActivity.kt
 - app/src/main/res/values/colors.xml
 - app/src/main/res/values/themes.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+a708bb6
+
+### Task
+Clear Media3 downloads on sign-out and show a loader
+
+
+### Changes
+- Sign-out previously only cleared DataStore session/profile keys (`AppPreferences.clearSession()`) and never touched Media3's download cache/index or the Room `downloads` table, so a different account signing in on the same device could see and play the previous user's downloads
+- Added `DownloadsRepository.clearAllDownloads()`/`DownloadsRepositoryImpl` impl — snapshots the Room `downloads` table and calls the existing per-item `DownloadController.remove()` for each entry, reusing the same Media3 removal path (and its listener that already syncs Room/cache) instead of a new bulk API
+- Added `ClearDownloadsUseCase` (`feature/downloads/domain/usecase/`), wired into `ProfileViewModel.signOut()` ahead of `SignOutUseCase` so download cleanup starts as early as possible in the sign-out sequence
+
+### Files
+- app/src/main/java/com/example/streamly/feature/downloads/domain/repository/DownloadsRepository.kt
+- app/src/main/java/com/example/streamly/feature/downloads/data/repository/DownloadsRepositoryImpl.kt
+- app/src/main/java/com/example/streamly/feature/downloads/domain/usecase/ClearDownloadsUseCase.kt
+- app/src/main/java/com/example/streamly/feature/profile/presentation/ProfileViewModel.kt
+- app/src/main/java/com/example/streamly/feature/profile/presentation/ProfileScreen.kt
+- app/src/main/java/com/example/streamly/feature/profile/presentation/contract/ProfileUiState.kt
