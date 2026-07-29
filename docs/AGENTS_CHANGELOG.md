@@ -634,3 +634,30 @@ Implement a centralized No Internet feature. Whenever the device is offline, dis
 - app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortBufferingState.kt
 - app/src/main/AndroidManifest.xml
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+d0cf1f4
+
+### Task
+Polish the Splash and Authentication screens, and fix a real dark-icon system-bar bug on both.
+
+
+### Changes
+- `SplashScreen`: replaced the bare centered spinner with the app name (`stringResource(R.string.app_name)`, "Streamly") and a `CircularProgressIndicator` grouped directly beneath it in one centered `Column` (not pinned separately to the bottom)
+- `AuthenticationScreen`: the previously-empty 72dp logo placeholder now shows "S" (new `R.string.app_name_initial`); content now sits in a `.verticalScroll(rememberScrollState())` `Column` sized to `.fillMaxSize()` so it centers by default and only scrolls once it overflows (e.g. short-height landscape) — the earlier version's scroll wasn't actually height-bounded, so it did nothing useful; also added `.windowInsetsPadding(WindowInsets.safeDrawing)` so content clears the status bar/notch/nav bar in any orientation while the gradient background itself stays a true edge-to-edge `fillMaxSize()`
+- Found and fixed a real bug in `StreamlyNavHost.kt`: `AuthenticationNavKey`/`SplashNavKey` weren't excluded from the "light" (dark-icon) branches of `SystemBarsAppearance`, so both screens got dark status/nav-bar icons despite having the same dark blue gradient background as Player/Shorts — rendering them near-invisible. Added both to the light/white-icon branches, matching how Player/Shorts already handle it
+- `AuthenticationScreen` didn't use `WindowSizeClass` at all (a hardcoded `widthIn(max = 480.dp)` applied unconditionally) despite AGENTS.md requiring layout decisions to derive from it — added `windowSizeClass: WindowSizeClass` parameter end to end (`AuthenticationScreenRoute` → `LocalWindowSizeClass.current`) and gated the width cap behind `isWideLayout`, matching `ProfileScreen`'s exact existing pattern; previews now construct explicit `WindowSizeClass.calculateFromSize(...)` per device instead of not testing size-class branching at all
+- `AppConstants.SPLASH_MIN_DISPLAY_DURATION` bumped 800ms → 1000ms
+
+### Files
+- app/src/main/java/com/example/streamly/StreamlyNavHost.kt
+- app/src/main/java/com/example/streamly/core/common/constant/AppConstants.kt
+- app/src/main/java/com/example/streamly/feature/auth/authentication/presentation/AuthenticationScreen.kt
+- app/src/main/java/com/example/streamly/feature/splash/presentation/SplashScreen.kt
+- app/src/main/res/values/strings.xml
