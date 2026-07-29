@@ -16,4 +16,16 @@
         <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
     </style>
+
+    <!--
+    Set as the Activity's manifest theme so the OS cold-start window (the thing that would
+    otherwise flash the default white android:windowBackground before Compose ever runs) shows
+    Streamly's own branded background/icon instead. installSplashScreen() in MainActivity swaps
+    to postSplashScreenTheme (Theme.Streamly) once the window is ready to draw real content.
+    -->
+    <style name="Theme.Streamly.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Streamly</item>
+    </style>
 </resources>

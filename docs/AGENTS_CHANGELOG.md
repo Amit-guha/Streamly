@@ -682,3 +682,30 @@ Polish the Splash and Authentication screens, and fix a real dark-icon system-ba
 - app/src/main/java/com/example/streamly/feature/auth/authentication/presentation/AuthenticationScreen.kt
 - app/src/main/java/com/example/streamly/feature/splash/presentation/SplashScreen.kt
 - app/src/main/res/values/strings.xml
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+8b2723b
+
+### Task
+Adopt the AndroidX SplashScreen API to remove the white flash before the app's cold-start window draws its first frame.
+
+
+### Changes
+- Added `androidx.core:core-splashscreen` via the version catalog (`gradle/libs.versions.toml` + `app/build.gradle.kts`)
+- Added `Theme.Streamly.Splash` (`themes.xml`, extends `Theme.SplashScreen`) with `windowSplashScreenBackground` set to a new `@color/splash_background` (matches `StreamlyBlueContainer`, the top color of `SplashScreen`'s gradient, so the handoff into the Compose splash has no color jump), `windowSplashScreenAnimatedIcon` pointing at the existing (default/unmodified) `ic_launcher_foreground`, and `postSplashScreenTheme` back to `Theme.Streamly`
+- `AndroidManifest.xml`: the launcher `<activity>` now uses `Theme.Streamly.Splash` instead of `Theme.Streamly` directly
+- `MainActivity.kt`: calls `installSplashScreen()` immediately before `super.onCreate()`, which performs the theme handoff at the right moment
+
+### Files
+- app/build.gradle.kts
+- gradle/libs.versions.toml
+- app/src/main/AndroidManifest.xml
+- app/src/main/java/com/example/streamly/MainActivity.kt
+- app/src/main/res/values/colors.xml
+- app/src/main/res/values/themes.xml
