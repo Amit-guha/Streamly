@@ -507,7 +507,7 @@ Fix a cluster of Shorts screen bugs found during on-device testing: notch/nav-ba
 Claude Code
 
 ### Commit
-pending
+10fa6a1
 
 ### Task
 Add real download progress/completion notifications, a notification permission request, and fix downloads getting stuck after a force-stop.
