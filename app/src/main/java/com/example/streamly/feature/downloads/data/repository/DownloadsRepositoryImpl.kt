@@ -11,6 +11,7 @@ import com.example.streamly.feature.downloads.domain.model.DownloadItem
 import com.example.streamly.feature.downloads.domain.repository.DownloadsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class DownloadsRepositoryImpl @Inject constructor(
@@ -35,6 +36,10 @@ class DownloadsRepositoryImpl @Inject constructor(
 
     override suspend fun removeDownload(videoId: String) {
         downloadController.remove(videoId)
+    }
+
+    override suspend fun clearAllDownloads() {
+        downloadDao.observeAll().first().forEach { entity -> downloadController.remove(entity.videoId) }
     }
 
     override suspend fun getTotalStorageBytes(): Long = storageInfoProvider.totalStorageBytes()

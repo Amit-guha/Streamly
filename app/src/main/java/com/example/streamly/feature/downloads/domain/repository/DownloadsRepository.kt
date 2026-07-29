@@ -8,5 +8,6 @@ interface DownloadsRepository {
     fun observeDownload(videoId: String): Flow<DownloadItem?>
     suspend fun startDownload(videoId: String, title: String, thumbnailUrl: String?, videoUrl: String)
     suspend fun removeDownload(videoId: String)
+    suspend fun clearAllDownloads()
     suspend fun getTotalStorageBytes(): Long
 }
