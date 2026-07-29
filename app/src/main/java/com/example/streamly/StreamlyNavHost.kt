@@ -40,14 +40,21 @@ fun StreamlyNavHost() {
     val navigator = rememberAppNavigator(startDestination = SplashNavKey)
     val topDestination = navigator.backStack.lastOrNull()
     val isCompactHeight = LocalWindowSizeClass.current.heightSizeClass == WindowHeightSizeClass.Compact
+    // Dark-icon (isAppearanceLight*=true) is for screens with a light background; Auth/Splash's
+    // dark blue gradient needs the same light/white icons as Home/Player/Profile/Shorts, or the
+    // icons render near-invisible against it.
     SystemBarsAppearance(
         lightStatusBarIcons = topDestination !is HomeNavKey &&
             topDestination !is PlayerNavKey &&
             topDestination !is ProfileNavKey &&
-            topDestination !is ShortsNavKey,
+            topDestination !is ShortsNavKey &&
+            topDestination !is AuthenticationNavKey &&
+            topDestination !is SplashNavKey,
         lightNavigationBarIcons = when {
             topDestination is ShortsNavKey -> false
             topDestination is PlayerNavKey -> !isCompactHeight
+            topDestination is AuthenticationNavKey -> false
+            topDestination is SplashNavKey -> false
             else -> true
         },
     )

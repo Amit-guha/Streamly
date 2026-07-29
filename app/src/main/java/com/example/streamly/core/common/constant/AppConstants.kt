@@ -3,7 +3,7 @@ package com.example.streamly.core.common.constant
 import kotlin.time.Duration.Companion.milliseconds
 
 object AppConstants {
-    val SPLASH_MIN_DISPLAY_DURATION = 800.milliseconds
+    val SPLASH_MIN_DISPLAY_DURATION = 1000.milliseconds
      const val VIDEOS_ASSET_FILE_NAME = "videos.json"
      const val SHORTS_ASSET_FILE_NAME = "shorts.json"
 
