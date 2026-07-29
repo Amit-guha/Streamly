@@ -172,8 +172,6 @@ core/
 │
 ├── local/
 │   ├── database/
-│   ├── dao/
-│   ├── entity/
 │   └── migration/
 │
 ├── designsystem/
@@ -258,12 +256,12 @@ Shared Room database infrastructure.
 
 ### Contains
 - Database
-- DAO
-- Entity
 - Migrations
 
 ### Rules
-- All Room-related classes belong here.
+- Only the shared `RoomDatabase` itself and its migrations belong here.
+- DAO and Entity classes are feature-specific — they belong in
+  `feature/<feature>/data/datasource/local/`, not here.
 - Do not place repositories or business logic here.
 - Features should access the database through their own repositories or local data sources.
 

@@ -642,6 +642,27 @@ Implement a centralized No Internet feature. Whenever the device is offline, dis
 Claude Code
 
 ### Commit
+d72e3f0
+
+### Task
+Prepare README.md to match the current state of the codebase and cover the assignment brief's required deliverables (setup, architecture decisions, AI-assisted workflow, shortcuts taken and why); move DAO/Entity out of the documented `core/local/` structure in AGENTS.md.
+
+### Changes
+- Rewrote README.md: accurate `Screens` table mapping all 7 required screens to their location and functional status, refreshed `Tech Stack`/`Project Structure` tree (previously only listed `home`/`profile`; now covers `auth` (authentication + signinwithemail), `home`, `shorts`, `player`, `downloads`, `profile`, `splash`, plus `MainScreen`/`MainViewModel`/connectivity additions), `Playback (Media3)` section, `Networking & Data` (mocked Ktor client disclosure), `AI-Assisted Development` section (Claude Code, AGENTS.md symlink strategy incl. a macOS-vs-Windows `core.symlinks` caveat, commit co-authorship, `docs/AGENTS_CHANGELOG.md` trail), `Shortcuts & Known Gaps` (Google Sign-In stub, mocked video data, static category chips, non-functional Shorts/Player stubs, disabled Profile menu items, limited device coverage — emulator + one real phone only), corrected `Getting Started` clone URL/directory
+- Replaced the plain-text `Presentation ↓ Domain ↓ Data` arrow diagram with a verified-aligned ASCII box diagram (after a Mermaid attempt didn't render well and a manually-retyped box diagram broke alignment — regenerated and spliced in programmatically to guarantee correct character-width alignment)
+- `AGENTS.md`: removed `dao/`and `entity/` from the `core/local/` tree and its `## local/` prose section; `Contains` is now just Database/Migrations, and a new rule states DAO/Entity are feature-specific and belong in `feature/<feature>/data/datasource/local/`, matching how `DownloadDao`/`DownloadEntity` are already actually organized
+
+### Files
+- README.md
+- AGENTS.md
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
 d0cf1f4
 
 ### Task
