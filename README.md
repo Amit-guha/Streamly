@@ -180,4 +180,18 @@ cd Streamly
 
 Or open the project in Android Studio and run the `app` configuration on an emulator/device.
 
-**Debug APK**: 
+**Debug APK**:  build from source with the command above
+(`app/build/outputs/apk/debug/app-debug.apk`) or via Android Studio's Run button.
+
+## Branching Strategy
+
+- `master` is the main branch — always deployable, everything lands here via PR.
+- `feature/<name>` for new features (e.g. `feature/download-manager`, `feature/short-video`).
+- `fix/<name>` for bug fixes (e.g. `fix/shorts-feed`, `fix/authentication`).
+- Each branch is merged into `master` through a pull request, keeping one focused unit of work
+  per PR and a commit history that reads as a changelog in its own right.
+
+## Changelog
+
+AI-agent-assisted work on this codebase is logged chronologically in
+[docs/AGENTS_CHANGELOG.md](docs/AGENTS_CHANGELOG.md).
