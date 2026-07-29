@@ -9,6 +9,7 @@ import com.example.streamly.feature.profile.presentation.contract.ProfileIntent
 import com.example.streamly.feature.profile.presentation.contract.ProfileUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,8 +19,10 @@ class ProfileViewModel @Inject constructor(
     private val signOutUseCase: SignOutUseCase,
 ) : MVIViewModel<ProfileUiState, ProfileIntent, ProfileEffect>(initialState = ProfileUiState()) {
 
+    private var profileObservationJob: Job? = null
+
     init {
-        viewModelScope.launch {
+        profileObservationJob = viewModelScope.launch {
             getUserProfileUseCase().collect { profile ->
                 if (profile.name.isNullOrBlank() && profile.email.isNullOrBlank()) return@collect
                 _state.update { it.copy(name = profile.name, email = profile.email) }
@@ -38,6 +41,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun signOut() {
+        profileObservationJob?.cancel()
         viewModelScope.launch {
             signOutUseCase()
             _state.update { it.copy(isSignOutDialogVisible = false) }
