@@ -4,4 +4,5 @@ data class ProfileUiState(
     val name: String? = null,
     val email: String? = null,
     val isSignOutDialogVisible: Boolean = false,
+    val isSigningOut: Boolean = false,
 )

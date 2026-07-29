@@ -35,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.streamly.R
 import com.example.streamly.core.designsystem.LocalWindowSizeClass
+import com.example.streamly.core.designsystem.component.CircularCommonLoader
 import com.example.streamly.feature.profile.presentation.component.ProfileHeader
 import com.example.streamly.feature.profile.presentation.component.ProfileMenuItem
 import com.example.streamly.feature.profile.presentation.component.SignOutConfirmationDialog
@@ -81,68 +82,74 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
 ) {
     val isWideLayout = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets.navigationBars,
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Column(
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets.navigationBars,
+        ) { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .then(if (isWideLayout) Modifier.widthIn(max = 640.dp) else Modifier),
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                ProfileHeader(
-                    name = uiState.name,
-                    email = uiState.email,
-                    onBackButtonClicked = { onIntent(ProfileIntent.BackClicked) },
-                )
-
-                ProfileMenuItem(
-                    icon = Icons.Filled.Download,
-                    label = stringResource(R.string.profile_downloads),
-                    enabled = true,
-                    onClick = { onIntent(ProfileIntent.DownloadsClicked) },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                ProfileMenuItem(
-                    icon = Icons.Filled.History,
-                    label = stringResource(R.string.profile_watch_history),
-                    enabled = false,
-                    onClick = {},
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                ProfileMenuItem(
-                    icon = Icons.Filled.Settings,
-                    label = stringResource(R.string.profile_settings),
-                    enabled = false,
-                    onClick = {},
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                Text(
-                    text = stringResource(R.string.profile_sign_out),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onIntent(ProfileIntent.SignOutClicked) }
-                        .padding(16.dp),
-                )
+                        .then(if (isWideLayout) Modifier.widthIn(max = 640.dp) else Modifier),
+                ) {
+                    ProfileHeader(
+                        name = uiState.name,
+                        email = uiState.email,
+                        onBackButtonClicked = { onIntent(ProfileIntent.BackClicked) },
+                    )
+
+                    ProfileMenuItem(
+                        icon = Icons.Filled.Download,
+                        label = stringResource(R.string.profile_downloads),
+                        enabled = true,
+                        onClick = { onIntent(ProfileIntent.DownloadsClicked) },
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ProfileMenuItem(
+                        icon = Icons.Filled.History,
+                        label = stringResource(R.string.profile_watch_history),
+                        enabled = false,
+                        onClick = {},
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ProfileMenuItem(
+                        icon = Icons.Filled.Settings,
+                        label = stringResource(R.string.profile_settings),
+                        enabled = false,
+                        onClick = {},
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                    Text(
+                        text = stringResource(R.string.profile_sign_out),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onIntent(ProfileIntent.SignOutClicked) }
+                            .padding(16.dp),
+                    )
+                }
             }
         }
-    }
 
-    if (uiState.isSignOutDialogVisible) {
-        SignOutConfirmationDialog(
-            onConfirm = { onIntent(ProfileIntent.SignOutConfirmed) },
-            onDismiss = { onIntent(ProfileIntent.SignOutDismissed) },
-        )
+        if (uiState.isSignOutDialogVisible) {
+            SignOutConfirmationDialog(
+                onConfirm = { onIntent(ProfileIntent.SignOutConfirmed) },
+                onDismiss = { onIntent(ProfileIntent.SignOutDismissed) },
+            )
+        }
+
+        if (uiState.isSigningOut) {
+            CircularCommonLoader()
+        }
     }
 }
 

@@ -2,6 +2,7 @@ package com.example.streamly.feature.profile.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.example.streamly.core.common.base.MVIViewModel
+import com.example.streamly.feature.downloads.domain.usecase.ClearDownloadsUseCase
 import com.example.streamly.feature.profile.domain.usecase.GetUserProfileUseCase
 import com.example.streamly.feature.profile.domain.usecase.SignOutUseCase
 import com.example.streamly.feature.profile.presentation.contract.ProfileEffect
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class ProfileViewModel @Inject constructor(
     getUserProfileUseCase: GetUserProfileUseCase,
     private val signOutUseCase: SignOutUseCase,
+    private val clearDownloadsUseCase: ClearDownloadsUseCase,
 ) : MVIViewModel<ProfileUiState, ProfileIntent, ProfileEffect>(initialState = ProfileUiState()) {
 
     private var profileObservationJob: Job? = null
@@ -42,9 +44,10 @@ class ProfileViewModel @Inject constructor(
 
     private fun signOut() {
         profileObservationJob?.cancel()
+        _state.update { it.copy(isSignOutDialogVisible = false, isSigningOut = true) }
         viewModelScope.launch {
+            clearDownloadsUseCase()
             signOutUseCase()
-            _state.update { it.copy(isSignOutDialogVisible = false) }
             sendEffect(ProfileEffect.NavigateToOnboarding)
         }
     }
