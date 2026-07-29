@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.streamly.R
 import com.example.streamly.core.designsystem.LocalWindowSizeClass
 import com.example.streamly.core.designsystem.component.CircularCommonLoader
+import com.example.streamly.core.designsystem.component.RequestNotificationPermission
 import com.example.streamly.core.navigation.NavigationDestination
 import com.example.streamly.feature.downloads.presentation.navigation.DownloadsNavKey
 import com.example.streamly.feature.home.presentation.component.ErrorContent
@@ -71,6 +72,7 @@ internal fun HomeScreenRoute(
         }
     }
 
+    RequestNotificationPermission()
     HomeScreen(
         uiState = uiState,
         windowSizeClass = windowSizeClass,
