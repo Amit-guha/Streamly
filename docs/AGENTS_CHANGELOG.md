@@ -499,3 +499,30 @@ Fix a cluster of Shorts screen bugs found during on-device testing: notch/nav-ba
 - app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortProgressBar.kt
 - app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortBufferingState.kt
 - app/src/main/java/com/example/streamly/feature/shorts/presentation/component/ShortThumbnail.kt
+
+--------------------------------------------------------------------------------------------------------------
+
+## 2026-07-29
+### Agent
+Claude Code
+
+### Commit
+10fa6a1
+
+### Task
+Add real download progress/completion notifications, a notification permission request, and fix downloads getting stuck after a force-stop.
+
+
+### Changes
+- `StreamlyDownloadService.getForegroundNotification()` now builds a real progress notification via Media3's `DownloadNotificationHelper` (title + percentage progress bar, refreshed on Media3's own update interval) instead of a bare "ongoing" placeholder notification
+- Added `DownloadNotifier` (`feature/downloads/data/download/`) — a `DownloadManager.Listener` (the same integration point `Media3DownloadListener` already uses to mirror state to Room) that posts a one-shot completed/failed notification per video, since `DownloadService` itself exposes no per-download callback; wired up alongside `Media3DownloadListener` in `StreamlyApp.onCreate()`
+- Added the `POST_NOTIFICATIONS` manifest permission and a runtime request on the Authentication screen (`RequestNotificationPermissionOnce` in `AuthenticationScreen.kt`).
+- Fixed downloads staying permanently stuck after the app is force-stopped mid-download: `StreamlyApp.onCreate()` now also calls `DownloadService.start(this, StreamlyDownloadService::class.java)` (the standard Media3 pattern), so any `QUEUED`/`DOWNLOADING` download persisted in the index actually resumes on next launch instead of sitting there indefinitely
+
+### Files
+- app/src/main/java/com/example/streamly/core/service/StreamlyDownloadService.kt
+- app/src/main/java/com/example/streamly/feature/downloads/data/download/DownloadNotifier.kt
+- app/src/main/java/com/example/streamly/feature/auth/authentication/presentation/AuthenticationScreen.kt
+- app/src/main/java/com/example/streamly/StreamlyApp.kt
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/strings.xml
