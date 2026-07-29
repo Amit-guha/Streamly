@@ -82,6 +82,7 @@ internal fun PlayerScreenRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val downloadStartedMessage = stringResource(R.string.player_download_started_message)
     val viewActionLabel = stringResource(R.string.player_download_started_view_action)
+    val guestDownloadBlockedMessage = stringResource(R.string.player_guest_download_blocked_message)
 
 
     var isPlayerVisible by rememberSaveable { mutableStateOf(true) }
@@ -116,6 +117,12 @@ internal fun PlayerScreenRoute(
                     if (result == SnackbarResult.ActionPerformed) {
                         onNavigate(DownloadsNavKey)
                     }
+                }
+                PlayerEffect.ShowGuestDownloadBlockedSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = guestDownloadBlockedMessage,
+                        duration = SnackbarDuration.Short,
+                    )
                 }
                 PlayerEffect.NavigateToDownloads -> {
                     isPlayerVisible = false

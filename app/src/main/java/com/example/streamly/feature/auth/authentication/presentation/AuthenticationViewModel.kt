@@ -2,6 +2,7 @@ package com.example.streamly.feature.auth.authentication.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.example.streamly.core.common.base.MVIViewModel
+import com.example.streamly.core.common.enum.UserType
 import com.example.streamly.feature.auth.authentication.domain.usecase.SignInUseCase
 import com.example.streamly.feature.auth.authentication.presentation.contract.AuthenticationEffect
 import com.example.streamly.feature.auth.authentication.presentation.contract.AuthenticationIntent
@@ -19,16 +20,16 @@ class AuthenticationViewModel @Inject constructor(
 
     override fun onIntent(intent: AuthenticationIntent) {
         when (intent) {
-            AuthenticationIntent.OnContinueWithGoogleButtonClicked -> signInAndContinue()
-            AuthenticationIntent.OnContinueAsGuestButtonClicked -> signInAndContinue()
+            AuthenticationIntent.OnContinueWithGoogleButtonClicked -> signInAndContinue(UserType.GOOGLE)
+            AuthenticationIntent.OnContinueAsGuestButtonClicked -> signInAndContinue(UserType.GUEST)
             AuthenticationIntent.OnSignInWithEmailButtonClicked ->
                 sendEffect(AuthenticationEffect.NavigateToEmailSignIn)
         }
     }
 
-    private fun signInAndContinue() {
+    private fun signInAndContinue(userType: UserType) {
         viewModelScope.launch {
-            signInUseCase()
+            signInUseCase(userType)
             sendEffect(AuthenticationEffect.NavigateToHome)
         }
     }

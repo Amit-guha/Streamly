@@ -10,6 +10,7 @@ import com.example.streamly.feature.downloads.domain.usecase.DownloadVideoUseCas
 import com.example.streamly.feature.downloads.domain.usecase.GetDownloadStatusUseCase
 import com.example.streamly.feature.player.di.PlayerController
 import com.example.streamly.feature.player.domain.usecase.GetVideoDetailsUseCase
+import com.example.streamly.feature.player.domain.usecase.IsGuestUserUseCase
 import com.example.streamly.feature.player.presentation.contract.PlayerEffect
 import com.example.streamly.feature.player.presentation.contract.PlayerIntent
 import com.example.streamly.feature.player.presentation.contract.PlayerUiState
@@ -29,6 +30,7 @@ class PlayerViewModel @Inject constructor(
     private val downloadVideoUseCase: DownloadVideoUseCase,
     private val deleteDownloadUseCase: DeleteDownloadUseCase,
     private val getDownloadStatusUseCase: GetDownloadStatusUseCase,
+    private val isGuestUserUseCase: IsGuestUserUseCase,
 ) : MVIViewModel<PlayerUiState, PlayerIntent, PlayerEffect>(initialState = PlayerUiState()) {
 
     // Forwarded straight through — only PlayerSurface/PlayerView needs this, for native
@@ -98,10 +100,16 @@ class PlayerViewModel @Inject constructor(
     // instead of restarting it.
     private fun onDownloadIconClicked() {
         val status = _state.value.downloadStatus
-        if (status == null || status == DownloadStatus.FAILED) {
-            downloadCurrentVideo()
-        } else {
+        if (status != null && status != DownloadStatus.FAILED) {
             _state.update { it.copy(showDownloadOptionsSheet = true) }
+            return
+        }
+        viewModelScope.launch {
+            if (isGuestUserUseCase()) {
+                sendEffect(PlayerEffect.ShowGuestDownloadBlockedSnackbar)
+            } else {
+                downloadCurrentVideo()
+            }
         }
     }
 
