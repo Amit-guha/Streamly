@@ -17,6 +17,12 @@ internal fun SignOutConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        // AlertDialog defaults to surfaceContainerHigh, which Theme.kt doesn't pin identically
+        // across light/dark — pin explicitly to the roles that are, matching
+        // DownloadOptionsBottomSheet's fix for the same underlying issue.
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
         title = { Text(text = stringResource(R.string.profile_sign_out_dialog_title)) },
         text = { Text(text = stringResource(R.string.profile_sign_out_dialog_message)) },
         confirmButton = {

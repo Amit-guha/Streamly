@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
             CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {
                 StreamlyTheme {
-                    StreamlyNavHost()
+                    MainScreen()
                 }
             }
         }

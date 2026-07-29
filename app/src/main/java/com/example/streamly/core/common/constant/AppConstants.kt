@@ -13,4 +13,8 @@ object AppConstants {
 
     const val GOOGLE_USER_NAME = "Google User"
     const val GOOGLE_USER_EMAIL = "google.user@example.com"
+
+    const val CONNECTIVITY_STOP_TIMEOUT_MILLIS = 5_000L
+
+    const val SHORTS_PLAYER_POOL_MAX_SIZE = 2
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import com.example.streamly.core.common.base.MVIViewModel
 import com.example.streamly.core.common.enum.Status
+import com.example.streamly.core.domain.connectivity.ObserveNetworkReconnectedUseCase
 import com.example.streamly.feature.shorts.di.ShortsPlayerPool
 import com.example.streamly.feature.shorts.domain.usecase.GetShortsUseCase
 import com.example.streamly.feature.shorts.presentation.contract.ShortsEffect
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 class ShortsViewModel @Inject constructor(
     private val shortsPlayerPool: ShortsPlayerPool,
     private val getShortsUseCase: GetShortsUseCase,
+    private val observeNetworkReconnectedUseCase: ObserveNetworkReconnectedUseCase,
 ) : MVIViewModel<ShortsUiState, ShortsIntent, ShortsEffect>(initialState = ShortsUiState()) {
 
     private var wasPlayingBeforeSystemPause = false
@@ -27,6 +29,17 @@ class ShortsViewModel @Inject constructor(
     // guard in onPageChanged would also block that legitimate first call, not just later replays.
     // This distinguishes "first time reaching this index" from "already processed" instead.
     private var hasStartedFirstPage = false
+
+    init {
+        // A short's HLS load can fail outright with no internet; ExoPlayer won't retry on its
+        // own once it gives up, so nudge any errored pooled player to retry as soon as
+        // connectivity is restored, regardless of which short is on screen at that moment.
+        viewModelScope.launch {
+            observeNetworkReconnectedUseCase().collect {
+                shortsPlayerPool.retryErroredPlayers(currentIndex = _state.value.currentIndex)
+            }
+        }
+    }
 
     override fun onIntent(intent: ShortsIntent) {
         when (intent) {

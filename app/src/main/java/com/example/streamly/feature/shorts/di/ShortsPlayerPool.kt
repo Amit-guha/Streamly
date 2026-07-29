@@ -4,13 +4,14 @@ import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.example.streamly.core.common.constant.AppConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 /**
- * Pooled ExoPlayer strategy for the shorts feed: at most [MAX_POOL_SIZE] players are ever alive
- * at once, matching the visible item plus one adjacent item pre-buffering forward — never one
- * player per feed item.
+ * Pooled ExoPlayer strategy for the shorts feed: at most [AppConstants.SHORTS_PLAYER_POOL_MAX_SIZE]
+ * players are ever alive at once, matching the visible item plus one adjacent item pre-buffering
+ * forward — never one player per feed item.
  *
  * Backed by a [LinkedHashMap] used as an LRU cache: [prepare] moves a hit to the most-recently-used
  * (end) position, and a miss evicts+releases the least-recently-used (front) entry once the pool
@@ -24,6 +25,7 @@ interface ShortsPlayerPool {
     fun setMuted(muted: Boolean)
     fun pauseAll()
     fun resume(index: Int)
+    fun retryErroredPlayers(currentIndex: Int)
     fun releaseAll()
 }
 
@@ -40,14 +42,14 @@ class Media3ShortsPlayerPool @Inject constructor(
             return existing
         }
 
-        if (pooledPlayers.size >= MAX_POOL_SIZE) {
+        if (pooledPlayers.size >= AppConstants.SHORTS_PLAYER_POOL_MAX_SIZE) {
             val leastRecentlyUsedIndex = pooledPlayers.keys.first()
             pooledPlayers.remove(leastRecentlyUsedIndex)?.release()
         }
 
         val player = ExoPlayer.Builder(context)
-            .setSeekBackIncrementMs(SEEK_INCREMENT_MS)
-            .setSeekForwardIncrementMs(SEEK_INCREMENT_MS)
+            .setSeekBackIncrementMs(AppConstants.SEEK_INCREMENT_MS)
+            .setSeekForwardIncrementMs(AppConstants.SEEK_INCREMENT_MS)
             .build()
             .apply {
                 repeatMode = Player.REPEAT_MODE_ONE
@@ -74,13 +76,25 @@ class Media3ShortsPlayerPool @Inject constructor(
         pooledPlayers[index]?.playWhenReady = true
     }
 
+    // A load failure (e.g. no internet) exhausts ExoPlayer's own retry/backoff and leaves the
+    // player parked in STATE_IDLE with a playerError — it does not recover on its own once
+    // connectivity returns. The MediaItem is still set, so prepare() is enough to reload it, but
+    // prepare() alone doesn't resume playback — that's what re-asserting playWhenReady does,
+    // matching what tapping the native play/pause button does under the hood. Only the current
+    // index is forced to play; the pre-buffered next one stays paused like it normally would,
+    // so a failed pre-buffer doesn't jump straight to auto-playing a short the user hasn't
+    // swiped to yet.
+    override fun retryErroredPlayers(currentIndex: Int) {
+        pooledPlayers.forEach { (index, player) ->
+            if (player.playerError != null) {
+                player.prepare()
+                player.playWhenReady = index == currentIndex
+            }
+        }
+    }
+
     override fun releaseAll() {
         pooledPlayers.values.forEach { it.release() }
         pooledPlayers.clear()
-    }
-
-    private companion object {
-        const val MAX_POOL_SIZE = 2
-        const val SEEK_INCREMENT_MS = 5_000L
     }
 }
